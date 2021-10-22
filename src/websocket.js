@@ -1,13 +1,17 @@
+// Packages:
 import zip from 'lodash.zipobject'
-
 import httpMethods from 'http-client'
 import openWebSocket from 'open-websocket'
 
+
+// Constants:
 const endpoints = {
   base: 'wss://stream.binance.com:9443/ws',
   futures: 'wss://fstream.binance.com/ws',
 }
 
+
+// Functions:
 const depthTransform = m => ({
   eventType: m.e,
   eventTime: m.E,
@@ -40,7 +44,6 @@ const depth = (payload, cb, transform = true, variator) => {
     )
     w.onmessage = msg => {
       const obj = JSON.parse(msg.data)
-
       cb(
         transform
           ? variator === 'futures'
@@ -49,10 +52,8 @@ const depth = (payload, cb, transform = true, variator) => {
           : obj,
       )
     }
-
     return w
   })
-
   return options =>
     cache.forEach(w => w.close(1000, 'Close handle was called', { keepClosed: true, ...options }))
 }
@@ -75,7 +76,7 @@ const futuresPartDepthTransform = (level, m) => ({
   finalUpdateId: m.u,
   prevFinalUpdateId: m.pu,
   bidDepth: m.b.map(b => zip(['price', 'quantity'], b)),
-  askDepth: m.a.map(a => zip(['price', 'quantity'], a)),
+  askDepth: m.a.map(a => zip(['price', 'quantity'], a))
 })
 
 const partialDepth = (payload, cb, transform = true, variator) => {
@@ -88,7 +89,6 @@ const partialDepth = (payload, cb, transform = true, variator) => {
     )
     w.onmessage = msg => {
       const obj = JSON.parse(msg.data)
-
       cb(
         transform
           ? variator === 'futures'
@@ -97,19 +97,14 @@ const partialDepth = (payload, cb, transform = true, variator) => {
           : obj,
       )
     }
-
     return w
   })
-
   return options =>
     cache.forEach(w => w.close(1000, 'Close handle was called', { keepClosed: true, ...options }))
 }
 
 const candles = (payload, interval, cb, transform = true, variator) => {
-  if (!interval || !cb) {
-    throw new Error('Please pass a symbol, interval and callback.')
-  }
-
+  if (!interval || !cb) throw new Error('Please pass a symbol, interval and callback.')
   const cache = (Array.isArray(payload) ? payload : [payload]).map(symbol => {
     const w = openWebSocket(
       `${
@@ -136,7 +131,6 @@ const candles = (payload, interval, cb, transform = true, variator) => {
         V: buyVolume,
         Q: quoteBuyVolume,
       } = tick
-
       cb(
         transform
           ? {
@@ -162,10 +156,8 @@ const candles = (payload, interval, cb, transform = true, variator) => {
           : obj,
       )
     }
-
     return w
   })
-
   return options =>
     cache.forEach(w => w.close(1000, 'Close handle was called', { keepClosed: true, ...options }))
 }
@@ -236,7 +228,6 @@ const ticker = (payload, cb, transform = true, variator) => {
         variator === 'futures' ? endpoints.futures : endpoints.base
       }/${symbol.toLowerCase()}@ticker`,
     )
-
     w.onmessage = msg => {
       const obj = JSON.parse(msg.data)
       cb(
@@ -247,10 +238,8 @@ const ticker = (payload, cb, transform = true, variator) => {
           : obj,
       )
     }
-
     return w
   })
-
   return options =>
     cache.forEach(w => w.close(1000, 'Close handle was called', { keepClosed: true, ...options }))
 }
@@ -259,7 +248,6 @@ const allTickers = (cb, transform = true, variator) => {
   const w = new openWebSocket(
     `${variator === 'futures' ? endpoints.futures : endpoints.base}/!ticker@arr`,
   )
-
   w.onmessage = msg => {
     const arr = JSON.parse(msg.data)
     cb(
@@ -270,38 +258,31 @@ const allTickers = (cb, transform = true, variator) => {
         : arr,
     )
   }
-
   return options => w.close(1000, 'Close handle was called', { keepClosed: true, ...options })
 }
 
 const miniTicker = (payload, cb, transform = true) => {
   const cache = (Array.isArray(payload) ? payload : [payload]).map(symbol => {
     const w = openWebSocket(`${endpoints.base}/${symbol.toLowerCase()}@miniTicker`)
-
     w.onmessage = msg => {
       const obj = JSON.parse(msg.data)
       cb(transform ? miniTickerTransform(obj) : obj)
     }
-
     return w
   })
-
   return options =>
     cache.forEach(w => w.close(1000, 'Close handle was called', { keepClosed: true, ...options }))
 }
 
-const allMiniTicker = (payload, cb, transform = true) => {
+const allMiniTickers = (payload, cb, transform = true) => {
   const cache = (Array.isArray(payload) ? payload : [payload]).map(() => {
     const w = openWebSocket(`${endpoints.base}/!miniTicker@arr`)
-
     w.onmessage = msg => {
       const arr = JSON.parse(msg.data)
       cb(transform ? arr.map(m => miniTickerTransform(m)) : arr)
     }
-
     return w
   })
-
   return options =>
     cache.forEach(w => w.close(1000, 'Close handle was called', { keepClosed: true, ...options }))
 }
@@ -309,15 +290,12 @@ const allMiniTicker = (payload, cb, transform = true) => {
 const customSubStream = (payload, cb, variator) => {
   const cache = (Array.isArray(payload) ? payload : [payload]).map(sub => {
     const w = openWebSocket(`${variator === 'futures' ? endpoints.futures : endpoints.base}/${sub}`)
-
     w.onmessage = msg => {
       const data = JSON.parse(msg.data)
       cb(data)
     }
-
     return w
   })
-
   return options =>
     cache.forEach(w => w.close(1000, 'Close handle was called', { keepClosed: true, ...options }))
 }
@@ -358,7 +336,6 @@ const aggTrades = (payload, cb, transform = true, variator) => {
     )
     w.onmessage = msg => {
       const obj = JSON.parse(msg.data)
-
       cb(
         transform
           ? variator === 'futures'
@@ -367,10 +344,8 @@ const aggTrades = (payload, cb, transform = true, variator) => {
           : obj,
       )
     }
-
     return w
   })
-
   return options =>
     cache.forEach(w => w.close(1000, 'Close handle was called', { keepClosed: true, ...options }))
 }
@@ -394,25 +369,20 @@ const futuresLiquidations = (payload, cb, transform = true) => {
     const w = openWebSocket(`${endpoints.futures}/${symbol.toLowerCase()}@forceOrder`)
     w.onmessage = msg => {
       const obj = JSON.parse(msg.data)
-
       cb(transform ? futuresLiqsTransform(obj.o) : obj)
     }
-
     return w
   })
-
   return options =>
     cache.forEach(w => w.close(1000, 'Close handle was called', { keepClosed: true, ...options }))
 }
 
 const futuresAllLiquidations = (cb, transform = true) => {
   const w = new openWebSocket(`${endpoints.futures}/!forceOrder@arr`)
-
   w.onmessage = msg => {
     const obj = JSON.parse(msg.data)
     cb(transform ? futuresLiqsTransform(obj.o) : obj)
   }
-
   return options => w.close(1000, 'Close handle was called', { keepClosed: true, ...options })
 }
 
@@ -435,13 +405,10 @@ const trades = (payload, cb, transform = true) => {
     const w = openWebSocket(`${endpoints.base}/${symbol.toLowerCase()}@trade`)
     w.onmessage = msg => {
       const obj = JSON.parse(msg.data)
-
       cb(transform ? tradesTransform(obj) : obj)
     }
-
     return w
   })
-
   return options =>
     cache.forEach(w => w.close(1000, 'Close handle was called', { keepClosed: true, ...options }))
 }
@@ -597,7 +564,6 @@ const futuresUserTransforms = {
 
 export const userEventHandler = (cb, transform = true, variator) => msg => {
   const { e: type, ...rest } = JSON.parse(msg.data)
-
   cb(
     variator === 'futures'
       ? transform && futuresUserTransforms[type]
@@ -623,7 +589,6 @@ const capitalize = (str, check) => (check ? `${str[0].toUpperCase()}${str.slice(
 
 const getStreamMethods = (opts, variator = '') => {
   const methods = httpMethods(opts)
-
   return STREAM_METHODS.reduce(
     (acc, key) => [...acc, methods[`${variator}${capitalize(`${key}DataStream`, !!variator)}`]],
     [],
@@ -634,49 +599,32 @@ export const keepStreamAlive = (method, listenKey) => method({ listenKey })
 
 const user = (opts, variator) => (cb, transform) => {
   const [getDataStream, keepDataStream, closeDataStream] = getStreamMethods(opts, variator)
-
   let currentListenKey = null
   let int = null
   let w = null
   let keepClosed = false
+  
   const errorHandler = userErrorHandler(cb, transform)
 
   const keepAlive = isReconnecting => {
     if (currentListenKey) {
       keepStreamAlive(keepDataStream, currentListenKey).catch(err => {
         closeStream({}, true)
-
-        if (isReconnecting) {
-          setTimeout(() => makeStream(true), 30e3)
-        } else {
-          makeStream(true)
-        }
-
-        if (opts.emitStreamErrors) {
-          errorHandler(err)
-        }
+        if (isReconnecting) setTimeout(() => makeStream(true), 30e3)
+        else makeStream(true)
+        if (opts.emitStreamErrors) errorHandler(err)
       })
     }
   }
 
   const closeStream = (options, catchErrors, setKeepClosed = false) => {
     keepClosed = setKeepClosed
-
-    if (!currentListenKey) {
-      return Promise.resolve()
-    }
-
+    if (!currentListenKey) return Promise.resolve()
     clearInterval(int)
-
     const p = closeDataStream({ listenKey: currentListenKey })
-
-    if (catchErrors) {
-      p.catch(f => f)
-    }
-
+    if (catchErrors) p.catch(f => f)
     w.close(1000, 'Close handle was called', { keepClosed: true, ...options })
     currentListenKey = null
-
     return p
   }
 
@@ -685,80 +633,57 @@ const user = (opts, variator) => (cb, transform) => {
       !keepClosed &&
       getDataStream()
         .then(({ listenKey }) => {
-          if (keepClosed) {
-            return closeDataStream({ listenKey }).catch(f => f)
-          }
-
+          if (keepClosed) return closeDataStream({ listenKey }).catch(f => f)
           w = openWebSocket(
             `${variator === 'futures' ? endpoints.futures : endpoints.base}/${listenKey}`,
           )
-
           w.onmessage = msg => userEventHandler(cb, transform, variator)(msg)
-          if (opts.emitSocketOpens) {
-            w.onopen = () => userOpenHandler(cb, transform)()
-          }
-          if (opts.emitSocketErrors) {
-            w.onerror = ({ error }) => errorHandler(error)
-          }
-
+          if (opts.emitSocketOpens) w.onopen = () => userOpenHandler(cb, transform)()
+          if (opts.emitSocketErrors) w.onerror = ({ error }) => errorHandler(error)
           currentListenKey = listenKey
-
           int = setInterval(() => keepAlive(false), 50e3)
-
           keepAlive(true)
-
           return options => closeStream(options, false, true)
         })
         .catch(err => {
           if (isReconnecting) {
-            if (!keepClosed) {
-              setTimeout(() => makeStream(true), 30e3)
-            }
-
-            if (opts.emitStreamErrors) {
-              errorHandler(err)
-            }
-          } else {
-            throw err
-          }
+            if (!keepClosed) setTimeout(() => makeStream(true), 30e3)
+            if (opts.emitStreamErrors) errorHandler(err)
+          } else throw err
         })
     )
   }
-
   return makeStream(false)
 }
 
+
+// Exports:
 export default opts => {
-  if (opts && opts.wsBase) {
-    endpoints.base = opts.wsBase
-  }
-
-  if (opts && opts.wsFutures) {
-    endpoints.futures = opts.wsFutures
-  }
-
+  if (opts && opts.wsBase) endpoints.base = opts.wsBase
+  if (opts && opts.wsFutures) endpoints.futures = opts.wsFutures
   return {
+    // Websockets:
     depth,
     partialDepth,
-    candles,
-    trades,
-    aggTrades,
     ticker,
     allTickers,
     miniTicker,
-    allMiniTicker,
-    customSubStream,
+    allMiniTickers,
+    candles,
+    aggTrades,
+    trades,
     user: user(opts),
-
+    customSubStream,
+    
+    // Margin Websockets:
     marginUser: user(opts, 'margin'),
 
+    // Futures Websockets:
     futuresDepth: (payload, cb, transform) => depth(payload, cb, transform, 'futures'),
-    futuresPartialDepth: (payload, cb, transform) =>
-      partialDepth(payload, cb, transform, 'futures'),
-    futuresCandles: (payload, interval, cb, transform) =>
-      candles(payload, interval, cb, transform, 'futures'),
+    futuresPartialDepth: (payload, cb, transform) => partialDepth(payload, cb, transform, 'futures'),
     futuresTicker: (payload, cb, transform) => ticker(payload, cb, transform, 'futures'),
     futuresAllTickers: (cb, transform) => allTickers(cb, transform, 'futures'),
+    futuresCandles: (payload, interval, cb, transform) => candles(payload, interval, cb, transform, 'futures'),
     futuresAggTrades: (payload, cb, transform) => aggTrades(payload, cb, transform, 'futures'),
     futuresLiquidations,
     futuresAllLiquidations,
