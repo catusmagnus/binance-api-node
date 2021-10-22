@@ -1,31 +1,18 @@
+// Packages:
 import crypto from 'crypto'
 import zip from 'lodash.zipobject'
-
 import 'isomorphic-fetch'
 
+
+// Constants:
 const BASE = 'https://api.binance.com'
 const FUTURES = 'https://fapi.binance.com'
-
 const defaultGetTime = () => Date.now()
-
 const info = {
   spot: {},
   futures: {},
 }
-
-/**
- * Build query string for uri encoded url based on json object
- */
-const makeQueryString = q =>
-  q
-    ? `?${Object.keys(q)
-        .map(k => `${encodeURIComponent(k)}=${encodeURIComponent(q[k])}`)
-        .join('&')}`
-    : ''
-
-/**
- * Get API limits info from headers
- */
+// Get API limits info from headers.
 const headersMapping = {
   'x-mbx-used-weight-1m': 'usedWeight1m',
   'x-mbx-order-count-10s': 'orderCount10s',
@@ -34,39 +21,55 @@ const headersMapping = {
   'x-mbx-order-count-1d': 'orderCount1d',
   'x-response-time': 'responseTime',
 }
+export const candleFields = [
+  'openTime',
+  'open',
+  'high',
+  'low',
+  'close',
+  'volume',
+  'closeTime',
+  'quoteVolume',
+  'trades',
+  'baseAssetVolume',
+  'quoteAssetVolume',
+]
 
+
+// Functions:
+// Build query string for URI encoded URL based on JSON object.
+const makeQueryString = q =>
+  q ?
+    `?${Object.keys(q)
+      .map(k => `${encodeURIComponent(k)}=${encodeURIComponent(q[k])}`)
+      .join('&')}`
+  :
+    ''
+
+// Handles responses from the Binance API.
 const responseHandler = res => {
-  if (!res.headers || !res.url) {
-    return
-  }
-
+  if (!res.headers || !res.url) return
   const marketName = res.url.includes(FUTURES) ? 'futures' : 'spot'
-
   Object.keys(headersMapping).forEach(key => {
     const outKey = headersMapping[key]
-
-    if (res.headers.has(key)) {
-      info[marketName][outKey] = res.headers.get(key)
-    }
+    if (res.headers.has(key)) info[marketName][outKey] = res.headers.get(key)
   })
 }
 
-/**
- * Finalize API response
- */
+// Finalize the API response.
 const sendResult = call =>
   call.then(res => {
     // Get API limits info from headers
     responseHandler(res)
 
     // If response is ok, we can safely assume it is valid JSON
-    if (res.ok) {
-      return res.json()
-    }
+    if (res.ok) return res.json()
 
-    // Errors might come from the API itself or the proxy Binance is using.
-    // For API errors the response will be valid JSON,but for proxy errors
-    // it will be HTML
+    /**
+     * Errors might come from the API itself or the proxy that Binance is using.
+     * For API errors the response will be valid JSON, but for proxy errors
+     * it will be in HTML.
+     */
     return res.text().then(text => {
       let error
       try {
@@ -85,31 +88,25 @@ const sendResult = call =>
     })
   })
 
-/**
- * Util to validate existence of required parameter(s)
- */
+// Utility to validate existence of required parameter(s).
 const checkParams = (name, payload, requires = []) => {
-  if (!payload) {
-    throw new Error('You need to pass a payload object.')
-  }
-
+  if (!payload) throw new Error('You need to pass a payload object.')
   requires.forEach(r => {
     if (!payload[r] && isNaN(payload[r])) {
       throw new Error(`Method ${name} requires ${r} parameter.`)
     }
   })
-
   return true
 }
 
 /**
- * Make public calls against the api
+ * Make unmanaged public calls against the Binance API.
  *
- * @param {string} path Endpoint path
- * @param {object} data The payload to be sent
- * @param {string} method HTTB VERB, GET by default
- * @param {object} headers
- * @returns {object} The api response
+ * @param { string } path Endpoint path
+ * @param { object } data The payload to be sent
+ * @param { string } method HTTB VERB, GET by default
+ * @param { object } headers
+ * @returns { object } The API response
  */
 const publicCall = ({ endpoints }) => (path, data, method = 'GET', headers = {}) =>
   sendResult(
@@ -128,31 +125,26 @@ const publicCall = ({ endpoints }) => (path, data, method = 'GET', headers = {})
   )
 
 /**
- * Factory method for partial private calls against the api
+ * Factory method for partial private calls against the Binance API.
  *
- * @param {string} path Endpoint path
- * @param {object} data The payload to be sent
- * @param {string} method HTTB VERB, GET by default
- * @returns {object} The api response
+ * @param { string } path Endpoint path
+ * @param { object } data The payload to be sent
+ * @param { string } method HTTB VERB, GET by default
+ * @returns { object } The API response
  */
 const keyCall = ({ apiKey, pubCall }) => (path, data, method = 'GET') => {
-  if (!apiKey) {
-    throw new Error('You need to pass an API key to make this call.')
-  }
-
-  return pubCall(path, data, method, {
-    'X-MBX-APIKEY': apiKey,
-  })
+  if (!apiKey) throw new Error('You need to pass an API key to make this call.')
+  return pubCall(path, data, method, { 'X-MBX-APIKEY': apiKey })
 }
 
 /**
- * Factory method for private calls against the api
+ * Factory method for private calls against the Binance API.
  *
- * @param {string} path Endpoint path
- * @param {object} data The payload to be sent
- * @param {string} method HTTB VERB, GET by default
- * @param {object} headers
- * @returns {object} The api response
+ * @param { string } path Endpoint path
+ * @param { object } data The payload to be sent
+ * @param { string } method HTTB VERB, GET by default
+ * @param { object } headers
+ * @returns { object } The API response
  */
 const privateCall = ({ apiKey, apiSecret, endpoints, getTime = defaultGetTime, pubCall }) => (
   path,
@@ -165,51 +157,34 @@ const privateCall = ({ apiKey, apiSecret, endpoints, getTime = defaultGetTime, p
     throw new Error('You need to pass an API key and secret to make authenticated calls.')
   }
 
-  return (data && data.useServerTime
-    ? pubCall('/api/v3/time').then(r => r.serverTime)
-    : Promise.resolve(getTime())
+  return (data && data.useServerTime ?
+    pubCall('/api/v3/time').then(r => r.serverTime)
+  :
+    Promise.resolve(getTime())
   ).then(timestamp => {
-    if (data) {
-      delete data.useServerTime
-    }
-
+    if (data) delete data.useServerTime
     const signature = crypto
       .createHmac('sha256', apiSecret)
       .update(makeQueryString({ ...data, timestamp }).substr(1))
       .digest('hex')
-
     const newData = noExtra ? data : { ...data, timestamp, signature }
-
     return sendResult(
       fetch(
         `${
-          !(path.includes('/fapi') || path.includes('/futures')) || path.includes('/sapi')
-            ? endpoints.base
-            : endpoints.futures
-        }${path}${noData ? '' : makeQueryString(newData)}`,
+          !(path.includes('/fapi') || path.includes('/futures')) || path.includes('/sapi') ?
+            endpoints.base
+          :
+            endpoints.futures
+        }${ path }${ noData ? '' : makeQueryString(newData) }`,
         {
           method,
           headers: { 'X-MBX-APIKEY': apiKey },
-          json: true,
-        },
-      ),
+          json: true
+        }
+      )
     )
   })
 }
-
-export const candleFields = [
-  'openTime',
-  'open',
-  'high',
-  'low',
-  'close',
-  'volume',
-  'closeTime',
-  'quoteVolume',
-  'trades',
-  'baseAssetVolume',
-  'quoteAssetVolume',
-]
 
 /**
  * Get candles for a specific pair and interval and convert response
@@ -290,6 +265,8 @@ const aggTrades = (pubCall, payload, endpoint = '/api/v3/aggTrades') =>
     })),
   )
 
+
+// Exports:
 export default opts => {
   const endpoints = {
     base: (opts && opts.httpBase) || BASE,
@@ -301,140 +278,110 @@ export default opts => {
   const kCall = keyCall({ ...opts, pubCall })
 
   return {
-    getInfo: () => info,
+    // Public REST Endpoints:
     ping: () => pubCall('/api/v3/ping').then(() => true),
     time: () => pubCall('/api/v3/time').then(r => r.serverTime),
     exchangeInfo: payload => pubCall('/api/v3/exchangeInfo', payload),
-
     book: payload => book(pubCall, payload),
-    aggTrades: payload => aggTrades(pubCall, payload),
     candles: payload => candles(pubCall, payload),
-
-    trades: payload =>
-      checkParams('trades', payload, ['symbol']) && pubCall('/api/v3/trades', payload),
-    tradesHistory: payload =>
-      checkParams('tradesHitory', payload, ['symbol']) &&
-      kCall('/api/v3/historicalTrades', payload),
-
+    aggTrades: payload => aggTrades(pubCall, payload),
+    trades: payload => checkParams('trades', payload, ['symbol']) && pubCall('/api/v3/trades', payload),
     dailyStats: payload => pubCall('/api/v3/ticker/24hr', payload),
+    avgPrice: payload => pubCall('/api/v3/avgPrice', payload),
     prices: payload =>
       pubCall('/api/v3/ticker/price', payload).then(r =>
-        (Array.isArray(r) ? r : [r]).reduce((out, cur) => ((out[cur.symbol] = cur.price), out), {}),
+        (Array.isArray(r) ? r : [r]).reduce((out, cur) => ((out[cur.symbol] = cur.price), out), {})
       ),
-
-    avgPrice: payload => pubCall('/api/v3/avgPrice', payload),
-
     allBookTickers: () =>
       pubCall('/api/v3/ticker/bookTicker').then(r =>
-        (Array.isArray(r) ? r : [r]).reduce((out, cur) => ((out[cur.symbol] = cur), out), {}),
+        (Array.isArray(r) ? r : [r]).reduce((out, cur) => ((out[cur.symbol] = cur), out), {})
       ),
-
-    /**
-     * Call unmanaged private call to Binance api; you need a key and secret
-     */
-    privateRequest: (method, url, payload) => privCall(url, payload, method),
-
-    /**
-     * Call unmanaged public call to Binance api
-     */
-    publicRequest: (method, url, payload) => pubCall(url, payload, method),
-
-    order: payload => order(privCall, payload, '/api/v3/order'),
-    orderOco: payload => orderOco(privCall, payload, '/api/v3/order/oco'),
-    orderTest: payload => order(privCall, payload, '/api/v3/order/test'),
-    getOrder: payload => privCall('/api/v3/order', payload),
-    getOrderOco: payload => privCall('/api/v3/orderList', payload),
-    cancelOrder: payload => privCall('/api/v3/order', payload, 'DELETE'),
-    cancelOrderOco: payload => privCall('/api/v3/orderList', payload, 'DELETE'),
-
-    cancelOpenOrders: payload => privCall('/api/v3/openOrders', payload, 'DELETE'),
-    openOrders: payload => privCall('/api/v3/openOrders', payload),
-    allOrders: payload => privCall('/api/v3/allOrders', payload),
-
-    allOrdersOCO: payload => privCall('/api/v3/allOrderList', payload),
-
-    accountInfo: payload => privCall('/api/v3/account', payload),
-    myTrades: payload => privCall('/api/v3/myTrades', payload),
-
-    withdraw: payload => privCall('/sapi/v1/capital/withdraw/apply', payload, 'POST'),
-    withdrawHistory: payload => privCall('/sapi/v1/capital/withdraw/history', payload),
-    depositHistory: payload => privCall('/sapi/v1/capital/deposit/hisrec', payload),
-    depositAddress: payload => privCall('/sapi/v1/capital/deposit/address', payload),
-    tradeFee: payload => privCall('/sapi/v1/asset/tradeFee', payload),
-    assetDetail: payload => privCall('/sapi/v1/asset/assetDetail', payload),
-    accountSnapshot: payload => privCall('/sapi/v1/accountSnapshot', payload),
-    universalTransfer: payload => privCall('/sapi/v1/asset/transfer', payload, 'POST'),
-    universalTransferHistory: payload => privCall('/sapi/v1/asset/transfer', payload),
-
-    dustLog: payload => privCall('/sapi/v1/asset/dribblet', payload),
-    dustTransfer: payload => privCall('/sapi/v1/asset/dust', payload, 'POST'),
-    accountCoins: payload => privCall('/sapi/v1/capital/config/getall', payload),
-
-    getBnbBurn: payload => privCall('/sapi/v1/bnbBurn', payload),
-    setBnbBurn: payload => privCall('/sapi/v1/bnbBurn', payload, 'POST'),
-
-    capitalConfigs: () => privCall('/sapi/v1/capital/config/getall'),
-
-    getDataStream: () => privCall('/api/v3/userDataStream', null, 'POST', true),
-    keepDataStream: payload => privCall('/api/v3/userDataStream', payload, 'PUT', false, true),
-    closeDataStream: payload => privCall('/api/v3/userDataStream', payload, 'DELETE', false, true),
-
-    marginGetDataStream: () => privCall('/sapi/v1/userDataStream', null, 'POST', true),
-    marginKeepDataStream: payload =>
-      privCall('/sapi/v1/userDataStream', payload, 'PUT', false, true),
-    marginCloseDataStream: payload =>
-      privCall('/sapi/v1/userDataStream', payload, 'DELETE', false, true),
-
-    futuresGetDataStream: () => privCall('/fapi/v1/listenKey', null, 'POST', true),
-    futuresKeepDataStream: payload => privCall('/fapi/v1/listenKey', payload, 'PUT', false, true),
-    futuresCloseDataStream: payload =>
-      privCall('/fapi/v1/listenKey', payload, 'DELETE', false, true),
-
-    marginAllOrders: payload => privCall('/sapi/v1/margin/allOrders', payload),
-    marginOrder: payload => order(privCall, payload, '/sapi/v1/margin/order'),
-    marginOrderOco: payload => _orderOco(privCall, payload, '/sapi/v1/margin/order/oco'),
-    marginGetOrder: payload => privCall('/sapi/v1/margin/order', payload),
-    marginCancelOrder: payload => privCall('/sapi/v1/margin/order', payload, 'DELETE'),
-    marginOpenOrders: payload => privCall('/sapi/v1/margin/openOrders', payload),
-    marginAccountInfo: payload => privCall('/sapi/v1/margin/account', payload),
-    marginMyTrades: payload => privCall('/sapi/v1/margin/myTrades', payload),
-    marginRepay: payload => privCall('/sapi/v1/margin/repay', payload, 'POST'),
-    marginLoan: payload => privCall('/sapi/v1/margin/loan', payload, 'POST'),
-    marginIsolatedAccount: payload => privCall('/sapi/v1/margin/isolated/account', payload),
-    marginMaxBorrow: payload => privCall('/sapi/v1/margin/maxBorrowable', payload),
-    marginCreateIsolated: payload => privCall('/sapi/v1/margin/isolated/create', payload, 'POST'),
-    marginIsolatedTransfer: payload =>
-      privCall('/sapi/v1/margin/isolated/transfer', payload, 'POST'),
-    marginIsolatedTransferHistory: payload =>
-      privCall('/sapi/v1/margin/isolated/transfer', payload),
-    disableMarginAccount: payload =>
-      privCall('/sapi/v1/margin/isolated/account', payload, 'DELETE'),
-    enableMarginAccount: payload =>
-      privCall('/sapi/v1/margin/isolated/account', payload, 'POST'),
-
+    
+    // Futures Public REST Endpoints:
     futuresPing: () => pubCall('/fapi/v1/ping').then(() => true),
     futuresTime: () => pubCall('/fapi/v1/time').then(r => r.serverTime),
     futuresExchangeInfo: () => pubCall('/fapi/v1/exchangeInfo'),
     futuresBook: payload => book(pubCall, payload, '/fapi/v1/depth'),
-    futuresAggTrades: payload => aggTrades(pubCall, payload, '/fapi/v1/aggTrades'),
-    futuresMarkPrice: payload => pubCall('/fapi/v1/premiumIndex', payload),
-    futuresAllForceOrders: payload => pubCall('/fapi/v1/allForceOrders', payload),
-    futuresLongShortRatio: payload => pubCall('/futures/data/globalLongShortAccountRatio', payload),
     futuresCandles: payload => candles(pubCall, payload, '/fapi/v1/klines'),
+    futuresAggTrades: payload => aggTrades(pubCall, payload, '/fapi/v1/aggTrades'),
     futuresTrades: payload =>
       checkParams('trades', payload, ['symbol']) && pubCall('/fapi/v1/trades', payload),
     futuresDailyStats: payload => pubCall('/fapi/v1/ticker/24hr', payload),
     futuresPrices: () =>
       pubCall('/fapi/v1/ticker/price').then(r =>
-        (Array.isArray(r) ? r : [r]).reduce((out, cur) => ((out[cur.symbol] = cur.price), out), {}),
+        (Array.isArray(r) ? r : [r]).reduce((out, cur) => ((out[cur.symbol] = cur.price), out), {})
       ),
     futuresAllBookTickers: () =>
       pubCall('/fapi/v1/ticker/bookTicker').then(r =>
-        (Array.isArray(r) ? r : [r]).reduce((out, cur) => ((out[cur.symbol] = cur), out), {}),
+        (Array.isArray(r) ? r : [r]).reduce((out, cur) => ((out[cur.symbol] = cur), out), {})
       ),
+    futuresMarkPrice: payload => pubCall('/fapi/v1/premiumIndex', payload),
+    futuresAllForceOrders: payload => pubCall('/fapi/v1/allForceOrders', payload),
+    futuresLongShortRatio: payload => pubCall('/futures/data/globalLongShortAccountRatio', payload),
     futuresFundingRate: payload =>
       checkParams('fundingRate', payload, ['symbol']) && pubCall('/fapi/v1/fundingRate', payload),
-
+    
+    // Authenticated REST Endpoints:
+    order: payload => order(privCall, payload, '/api/v3/order'),
+    orderTest: payload => order(privCall, payload, '/api/v3/order/test'),
+    orderOco: payload => orderOco(privCall, payload, '/api/v3/order/oco'),
+    getOrder: payload => privCall('/api/v3/order', payload),
+    getOrderOco: payload => privCall('/api/v3/orderList', payload),
+    cancelOrder: payload => privCall('/api/v3/order', payload, 'DELETE'),
+    cancelOrderOco: payload => privCall('/api/v3/orderList', payload, 'DELETE'),
+    cancelOpenOrders: payload => privCall('/api/v3/openOrders', payload, 'DELETE'),
+    openOrders: payload => privCall('/api/v3/openOrders', payload),
+    allOrders: payload => privCall('/api/v3/allOrders', payload),
+    allOrdersOCO: payload => privCall('/api/v3/allOrderList', payload),
+    accountInfo: payload => privCall('/api/v3/account', payload),
+    myTrades: payload => privCall('/api/v3/myTrades', payload),
+    accountSnapshot: payload => privCall('/sapi/v1/accountSnapshot', payload),
+    tradesHistory: payload =>
+      checkParams('tradesHitory', payload, ['symbol']) && kCall('/api/v3/historicalTrades', payload),
+    depositAddress: payload => privCall('/sapi/v1/capital/deposit/address', payload),
+    depositHistory: payload => privCall('/sapi/v1/capital/deposit/hisrec', payload),
+    withdraw: payload => privCall('/sapi/v1/capital/withdraw/apply', payload, 'POST'),
+    withdrawHistory: payload => privCall('/sapi/v1/capital/withdraw/history', payload),
+    tradeFee: payload => privCall('/sapi/v1/asset/tradeFee', payload),
+    capitalConfigs: () => privCall('/sapi/v1/capital/config/getall'),
+    universalTransfer: payload => privCall('/sapi/v1/asset/transfer', payload, 'POST'),
+    universalTransferHistory: payload => privCall('/sapi/v1/asset/transfer', payload),
+    assetDetail: payload => privCall('/sapi/v1/asset/assetDetail', payload),
+    getBnbBurn: payload => privCall('/sapi/v1/bnbBurn', payload),
+    setBnbBurn: payload => privCall('/sapi/v1/bnbBurn', payload, 'POST'),
+    dustLog: payload => privCall('/sapi/v1/asset/dribblet', payload),
+    dustTransfer: payload => privCall('/sapi/v1/asset/dust', payload, 'POST'),
+    accountCoins: payload => privCall('/sapi/v1/capital/config/getall', payload),
+    lendingAccount: payload => privCall('/sapi/v1/lending/union/account', payload),
+    fundingWallet: payload => privCall('/sapi/v1/asset/get-funding-asset', payload, 'POST'),
+    apiPermission: payload => privCall('/sapi/v1/account/apiRestrictions', payload),
+    getDataStream: () => privCall('/api/v3/userDataStream', null, 'POST', true),
+    keepDataStream: payload => privCall('/api/v3/userDataStream', payload, 'PUT', false, true),
+    closeDataStream: payload => privCall('/api/v3/userDataStream', payload, 'DELETE', false, true),
+    
+    // Margin Authenticated REST Endpoints:
+    marginAccountInfo: payload => privCall('/sapi/v1/margin/account', payload),
+    marginLoan: payload => privCall('/sapi/v1/margin/loan', payload, 'POST'),
+    marginRepay: payload => privCall('/sapi/v1/margin/repay', payload, 'POST'),
+    marginIsolatedAccount: payload => privCall('/sapi/v1/margin/isolated/account', payload),
+    marginMaxBorrow: payload => privCall('/sapi/v1/margin/maxBorrowable', payload),
+    marginCreateIsolated: payload => privCall('/sapi/v1/margin/isolated/create', payload, 'POST'),
+    marginIsolatedTransfer: payload => privCall('/sapi/v1/margin/isolated/transfer', payload, 'POST'),
+    marginIsolatedTransferHistory: payload => privCall('/sapi/v1/margin/isolated/transfer', payload),
+    marginOrder: payload => order(privCall, payload, '/sapi/v1/margin/order'),
+    marginCancelOrder: payload => privCall('/sapi/v1/margin/order', payload, 'DELETE'),
+    marginOrderOco: payload => _orderOco(privCall, payload, '/sapi/v1/margin/order/oco'),
+    marginGetOrder: payload => privCall('/sapi/v1/margin/order', payload),
+    marginAllOrders: payload => privCall('/sapi/v1/margin/allOrders', payload),
+    marginOpenOrders: payload => privCall('/sapi/v1/margin/openOrders', payload),
+    marginMyTrades: payload => privCall('/sapi/v1/margin/myTrades', payload),
+    disableMarginAccount: payload => privCall('/sapi/v1/margin/isolated/account', payload, 'DELETE'),
+    enableMarginAccount: payload => privCall('/sapi/v1/margin/isolated/account', payload, 'POST'),
+    marginGetDataStream: () => privCall('/sapi/v1/userDataStream', null, 'POST', true),
+    marginKeepDataStream: payload => privCall('/sapi/v1/userDataStream', payload, 'PUT', false, true),
+    marginCloseDataStream: payload => privCall('/sapi/v1/userDataStream', payload, 'DELETE', false, true),
+    
+    // Futures Authenticated REST Endpoints:
     futuresOrder: payload => order(privCall, payload, '/fapi/v1/order'),
     futuresBatchOrders: payload => privCall('/fapi/v1/batchOrders', payload),
     futuresGetOrder: payload => privCall('/fapi/v1/order', payload),
@@ -443,19 +390,28 @@ export default opts => {
     futuresOpenOrders: payload => privCall('/fapi/v1/openOrders', payload),
     futuresAllOrders: payload => privCall('/fapi/v1/allOrders', payload),
     futuresPositionRisk: payload => privCall('/fapi/v2/positionRisk', payload),
-    futuresLeverageBracket: payload => privCall('/fapi/v1/leverageBracket', payload),
     futuresAccountBalance: payload => privCall('/fapi/v2/balance', payload),
     futuresAccountInfo: payload => privCall('/fapi/v2/account', payload),
     futuresUserTrades: payload => privCall('/fapi/v1/userTrades', payload),
     futuresPositionMode: payload => privCall('/fapi/v1/positionSide/dual', payload),
     futuresPositionModeChange: payload => privCall('/fapi/v1/positionSide/dual', payload, 'POST'),
+    futuresLeverageBracket: payload => privCall('/fapi/v1/leverageBracket', payload),
     futuresLeverage: payload => privCall('/fapi/v1/leverage', payload, 'POST'),
     futuresMarginType: payload => privCall('/fapi/v1/marginType', payload, 'POST'),
     futuresPositionMargin: payload => privCall('/fapi/v1/positionMargin', payload, 'POST'),
     futuresMarginHistory: payload => privCall('/fapi/v1/positionMargin/history', payload),
     futuresIncome: payload => privCall('/fapi/v1/income', payload),
-    lendingAccount: payload => privCall('/sapi/v1/lending/union/account', payload),
-    fundingWallet: payload => privCall('/sapi/v1/asset/get-funding-asset', payload, 'POST'),
-    apiPermission: payload => privCall('/sapi/v1/account/apiRestrictions', payload),
+    futuresGetDataStream: () => privCall('/fapi/v1/listenKey', null, 'POST', true),
+    futuresKeepDataStream: payload => privCall('/fapi/v1/listenKey', payload, 'PUT', false, true),
+    futuresCloseDataStream: payload => privCall('/fapi/v1/listenKey', payload, 'DELETE', false, true),
+    
+    // Advanced:
+    // Call unmanaged private call to the Binance API: you need a key and a secret.
+    privateRequest: (method, url, payload) => privCall(url, payload, method),
+    // Call unmanaged public call to the Binance API.
+    publicRequest: (method, url, payload) => pubCall(url, payload, method),
+
+    // Common:
+    getInfo: () => info,
   }
 }
