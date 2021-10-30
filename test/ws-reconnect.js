@@ -1,12 +1,18 @@
+// Packages:
 import WebSocket from 'ws'
 import test from 'ava'
 
-import openWebSocket from 'open-websocket'
 
+// Imports:
+import openWebSocket from '../src/WebSocket/open-websocket'
+
+
+// Constants:
 const port = 8084
-
 let server = new WebSocket.Server({ port })
 
+
+// Functions:
 server.on('connection', ws => {
   ws.on('message', () => server.clients.forEach(client => client.send('test')))
 })
@@ -23,9 +29,8 @@ test.only('[WS] reconnect when server is restarted', t => {
   return new Promise((resolve, reject) => {
     try {
       let isReconnect = false
-      const url = () => `ws://localhost:${port}`
+      const url = () => `ws://localhost:${ port }`
       const ws = openWebSocket(url)
-
       ws.addEventListener('open', () => {
         if (isReconnect) {
           ws.close(1000, undefined, { keepClosed: true })
@@ -35,7 +40,6 @@ test.only('[WS] reconnect when server is restarted', t => {
           server.close()
           server = new WebSocket.Server({ port })
         }
-
         isReconnect = true
       })
     } catch (err) {
