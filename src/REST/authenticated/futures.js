@@ -27,17 +27,17 @@ export const authenticatedFuturesMarketData = (kCall) => ({
    *  limit?: number
    *  fromId?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "id": number
    *  "price": string
    *  "qty": string
    *  "quoteQty": string
    *  "time": number
    *  "isBuyerMaker": boolean
-   * }]} Array containing top trader long/short ratio (Accounts)
+   * }]>} Array containing top trader long/short ratio (Accounts)
    */
   historicalTrades: payload =>
-    checkParams('authenticated.futures.marketData.historicalTrades', payload, [ 'symbol', 'period' ]) &&
+    checkParams('authenticated.futures.marketData.historicalTrades', payload, ['symbol']) &&
     kCall('/fapi/v1/historicalTrades', payload),
   /**
    * Get top trader long/short ratio (Accounts).
@@ -49,22 +49,22 @@ export const authenticatedFuturesMarketData = (kCall) => ({
    * @requires APIKEY
    * @param {{
    *  symbol: string
-   *  period: '5m' | '15m' | '30m' | '1h' | '2h' | '4h' | '6h' | '12h' | '1d'
+   *  period?: '5m' | '15m' | '30m' | '1h' | '2h' | '4h' | '6h' | '12h' | '1d'
    *  limit?: number
    *  startTime?: number
    *  endTime?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "symbol": string
    *  "longShortRatio": string
    *  "longAccount": string
    *  "shortAccount": string
    *  "timestamp": string
-   * }]} Array containing top trader long/short ratio (Accounts)
+   * }]>} Array containing top trader long/short ratio (Accounts)
    */
   topLongShortAccountRatio: payload =>
-    checkParams('authenticated.futures.marketData.topLongShortAccountRatio', payload, [ 'symbol', 'period' ]) &&
-    kCall('/futures/data/topLongShortAccountRatio', payload),
+    checkParams('authenticated.futures.marketData.topLongShortAccountRatio', payload, ['symbol']) &&
+    kCall('/futures/data/topLongShortAccountRatio', { period: '5m', ...payload }),
 })
 
 /**
@@ -85,10 +85,10 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  dualSidePosition: 'true' | 'false'
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "code": number
    *  "msg" string
-   * }} Response object 
+   * }>} Response object 
    */
   changePositionMode: payload =>
     checkParams('authenticated.futures.trade.changePositionMode', payload, ['dualSidePosition']) &&
@@ -101,11 +101,9 @@ export const authenticatedFuturesTrade = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{ recvWindow?: number }} payload
-   * @returns {{
-   *  "dualSidePosition": boolean
-   * }} Response object 
+   * @returns { Promise<boolean> } Response object 
    */
-  positionMode: payload => privCall('/fapi/v1/positionSide/dual', payload),
+  positionMode: payload => privCall('/fapi/v1/positionSide/dual', payload).then(r => r.dualSidePosition),
   /**
    * Change user's multi-assets mode (Multi-Assets Mode or Single-Asset Mode) on ***EVERY SYMBOL***.
    * @weight 1
@@ -117,10 +115,10 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  multiAssetsMargin: 'true' | 'false'
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "code": number
    *  "msg" string
-   * }} Response object 
+   * }>} Response object 
    */
   changeMultiAssetsMode: payload =>
     checkParams('authenticated.futures.trade.changeMultiAssetsMode', payload, ['multiAssetsMargin']) &&
@@ -133,11 +131,9 @@ export const authenticatedFuturesTrade = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{ recvWindow?: number }} payload
-   * @returns {{
-   *  "multiAssetsMargin": boolean
-   * }} Response object 
+   * @returns { Promise<boolean> } Response object 
    */
-  multiAssetsMode: payload => privCall('/fapi/v1/multiAssetsMargin', payload),
+  multiAssetsMode: payload => privCall('/fapi/v1/multiAssetsMargin', payload).then(r => r.multiAssetsMargin),
   /**
    * Send in a new order.
    * Additional mandatory parameters based on `type`:
@@ -209,7 +205,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  newOrderRespType?: 'ACK' | 'RESULT'
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "clientOrderId":  string
    *  "cumQty": string
    *  "cumQuote": string
@@ -235,7 +231,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  "updateTime": number
    *  "workingType": 'MARK_PRICE' | 'CONTRACT_PRICE'
    *  "priceProtect": boolean
-   * }} Response object 
+   * }>} Response object 
    */
   order: payload => futuresOrder(privCall, payload, '/fapi/v1/order'),
   /**
@@ -270,7 +266,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  }[]
    *  recvWindow?: number
    * }} payload
-   * @returns {[
+   * @returns { Promise<[
    *  {
    *    "clientOrderId":  string
    *    "cumQty": string
@@ -302,7 +298,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *    "code": number
    *    "msg": string
    *  }
-   * ]} Response array
+   * ]>} Response array
    */
   batchOrder: payload => futuresBatchOrder(privCall, payload, '/fapi/v1/batchOrders'),
   /**
@@ -326,7 +322,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  origClientOrderId?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "avgPrice": string
    *  "clientOrderId":  string
    *  "cumQuote": string
@@ -351,7 +347,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  "updateTime": number
    *  "workingType": 'MARK_PRICE' | 'CONTRACT_PRICE'
    *  "priceProtect": boolean
-   * }} Object containing order 
+   * }>} Object containing order 
    */
   getOrder: payload =>
     checkParams('authenticated.futures.trade.getOrder', payload, ['symbol']) &&
@@ -371,7 +367,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  origClientOrderId?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "clientOrderId":  string
    *  "cumQty": string
    *  "cumQuote": string
@@ -395,7 +391,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  "updateTime": number
    *  "workingType": 'MARK_PRICE' | 'CONTRACT_PRICE'
    *  "priceProtect": boolean
-   * }} Response object 
+   * }>} Response object 
    */
   cancelOrder: payload =>
     checkParams('authenticated.futures.trade.cancelOrder', payload, ['symbol']) &&
@@ -411,10 +407,10 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  symbol: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "code":  string
    *  "msg": string
-   * }} Response object 
+   * }>} Response object 
    */
   cancelOpenOrders: payload =>
     checkParams('authenticated.futures.trade.cancelOpenOrders', payload, ['symbol']) &&
@@ -434,7 +430,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  origClientOrderIdList?: string[]
    *  recvWindow?: number
    * }} payload
-   * @returns {[
+   * @returns { Promise<[
    *  {
    *    "clientOrderId":  string
    *    "cumQty": string
@@ -465,7 +461,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *    "code": number
    *    "msg": string
    *  }
-   * ]} Response array
+   * ]>} Response array
    */
   cancelMultipleOrders: payload =>
     checkParams('authenticated.futures.trade.cancelOpenOrders', payload, ['symbol']) &&
@@ -489,10 +485,10 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  countdownTime: number
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "symbol":  string
    *  "countdownTime": string
-   * }} Response object 
+   * }>} Response object 
    */
   autoCancelOpenOrders: payload =>
     checkParams('authenticated.futures.trade.autoCancelOpenOrders', payload, [ 'symbol', 'countdownTime' ]) &&
@@ -513,7 +509,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  origClientOrderId?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "avgPrice": string
    *  "clientOrderId":  string
    *  "cumQuote": string
@@ -538,7 +534,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  "updateTime": number
    *  "workingType": 'MARK_PRICE' | 'CONTRACT_PRICE'
    *  "priceProtect": boolean
-   * }} Object containing open order 
+   * }>} Object containing open order 
    */
   getOpenOrder: payload =>
     checkParams('authenticated.futures.trade.getOpenOrder', payload, ['symbol']) &&
@@ -552,10 +548,10 @@ export const authenticatedFuturesTrade = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{
-   *  symbol: string
+   *  symbol?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "avgPrice": string
    *  "clientOrderId":  string
    *  "cumQuote": string
@@ -580,11 +576,9 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  "updateTime": number
    *  "workingType": 'MARK_PRICE' | 'CONTRACT_PRICE'
    *  "priceProtect": boolean
-   * }]} Array containing open orders 
+   * }]>} Array containing open orders 
    */
-  openOrders: payload =>
-    checkParams('authenticated.futures.trade.openOrders', payload, ['symbol']) &&
-    privCall('/fapi/v1/openOrders', payload),
+  openOrders: payload => privCall('/fapi/v1/openOrders', payload),
   /**
    * Get all account orders; active, canceled, or filled.
    * - These orders will not be found:
@@ -607,7 +601,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "avgPrice": string
    *  "clientOrderId":  string
    *  "cumQuote": string
@@ -632,7 +626,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  "updateTime": number
    *  "workingType": 'MARK_PRICE' | 'CONTRACT_PRICE'
    *  "priceProtect": boolean
-   * }]} Array containing orders 
+   * }]>} Array containing orders 
    */
   allOrders: payload =>
     checkParams('authenticated.futures.trade.allOrders', payload, ['symbol']) &&
@@ -645,7 +639,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{ recvWindow?: number }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "accountAlias": string
    *  "asset":  string
    *  "balance": string
@@ -655,7 +649,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  "maxWithdrawAmount": string
    *  "marginAvailable": boolean
    *  "updateTime": number
-   * }]} Array containing account balance 
+   * }]>} Array containing account balance 
    */
   accountBalance: payload => privCall('/fapi/v2/balance', payload),
   /**
@@ -666,7 +660,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{ recvWindow?: number }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "feeTier": number
    *  "canTrade":  boolean
    *  "canDeposit": boolean
@@ -714,7 +708,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *    "positionAmt": string
    *    "updateTime": number
    *  }]
-   * }} Object containing account information 
+   * }>} Object containing account information 
    */
   account: payload => privCall('/fapi/v2/account', payload),
   /**
@@ -729,11 +723,11 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  leverage: number
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "leverage": number
-   *  "maxNotionalValue":  string
+   *  "maxNotionalValue": string
    *  "symbol": string
-   * }} Response object 
+   * }>} Response object 
    */
   changeLeverage: payload =>
     checkParams('authenticated.futures.trade.changeLeverage', payload, [ 'symbol', 'leverage' ]) &&
@@ -750,10 +744,10 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  marginType: 'ISOLATED' | 'CROSSED'
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "code": number
    *  "msg":  string
-   * }} Response object 
+   * }>} Response object 
    */
   changeMarginType: payload =>
     checkParams('authenticated.futures.trade.changeMarginType', payload, [ 'symbol', 'marginType' ]) &&
@@ -774,10 +768,10 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  type: 1 | 2
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "code": number
    *  "msg":  string
-   * }} Response object 
+   * }>} Response object 
    */
   modifyPositionMargin: payload =>
     checkParams('authenticated.futures.trade.modifyPositionMargin', payload, [ 'symbol', 'amount', 'type' ]) &&
@@ -798,14 +792,14 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "amount": string
    *  "asset": string
    *  "symbol": string
    *  "time": number
    *  "type": 1 | 2
    *  "positionSide": 'BOTH' | 'LONG' | 'SHORT'
-   * }]} Array containing position margin change history
+   * }]>} Array containing position margin change history
    */
   positionMarginChangeHistory: payload =>
     checkParams('authenticated.futures.trade.positionMarginChangeHistory', payload, ['symbol']) &&
@@ -822,7 +816,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  symbol?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "entryPrice": string
    *  "marginType": string
    *  "isAutoAddMargin": string
@@ -836,7 +830,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  "unRealizedProfit": string
    *  "positionSide": 'BOTH' | 'LONG' | 'SHORT'
    *  "updateTime": number
-   * }]} Array containing current position information
+   * }]>} Array containing current position information
    */
   position: payload => privCall('/fapi/v2/positionRisk', payload),
   /**
@@ -857,7 +851,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "buyer": boolean
    *  "commission": string
    *  "commissionAsset": string
@@ -872,7 +866,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  "positionSide": 'BOTH' | 'LONG' | 'SHORT'
    *  "symbol": string
    *  "time": number
-   * }]} Array containing trades
+   * }]>} Array containing trades
    */
   trades: payload =>
     checkParams('authenticated.futures.trade.trades', payload, ['symbol']) &&
@@ -897,7 +891,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "symbol": string
    *  "incomeType": 'TRANSFER' | 'WELCOME_BONUS' | 'REALIZED_PNL'
    *  | 'FUNDING_FEE' | 'COMMISSION' | 'INSURANCE_CLEAR'
@@ -907,7 +901,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  "time": number
    *  "tranId": string
    *  "tradeId": string
-   * }]} Array containing income history
+   * }]>} Array containing income history
    */
   incomeHistory: payload => privCall('/fapi/v1/income', payload),
   /**
@@ -921,9 +915,8 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  symbol?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
-   *  "symbol": string
-   *  "brackets": [{
+   * @returns { Promise<{
+   *  [ symbol: string ]: [{
    *    "bracket": number
    *    "initialLeverage": number
    *    "notionalCap": number
@@ -931,19 +924,11 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *    "maintMarginRatio": number
    *    "cum": number // NOTE: https://www.youtube.com/watch?v=RmOz4FrCIQU
    *  }]
-   * }] | {
-   *  "symbol": string
-   *  "brackets": [{
-   *    "bracket": number
-   *    "initialLeverage": number
-   *    "notionalCap": number
-   *    "notionalFloor": number
-   *    "maintMarginRatio": number
-   *    "cum": number // NOTE: https://www.youtube.com/watch?v=RmOz4FrCIQU
-   *  }]
-   * }} Array or object containing notional and leverage brackets
+   * }>} Array or object containing notional and leverage brackets
    */
-  leverageBracket: payload => privCall('/fapi/v1/leverageBracket', payload),
+  leverageBracket: payload => privCall('/fapi/v1/leverageBracket', payload).then(r =>
+    (Array.isArray(r) ? r : [r]).reduce((out, cur) => ((out[ cur.symbol ] = cur.brackets), out), {})
+  ),
   /**
    * Position ADL quantile estimation.
    * - Values update every 30s.
@@ -963,17 +948,18 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  symbol?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
-   *  "symbol": string
-   *  "adlQuantile": {
+   * @returns { Promise<{
+   *  [ symbol: string ]: {
    *    "LONG": number
    *    "SHORT": number
    *    "HEDGE"?: number
    *    "BOTH"?: number
    *  }
-   * }]} Array containing position ADL quantile estimation
+   * }>} Array containing position ADL quantile estimation
    */
-  positionADLQuantileEstimation: payload => privCall('/fapi/v1/adlQuantile', payload),
+  positionADLQuantileEstimation: payload => privCall('/fapi/v1/adlQuantile', payload).then(r =>
+    (Array.isArray(r) ? r : [r]).reduce((out, cur) => ((out[ cur.symbol ] = cur.adlQuantile), out), {})
+  ),
   /**
    * Get user's force orders.
    * - If `autoCloseType` is not sent, orders with both of the types will be returned.
@@ -991,7 +977,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "orderId": number
    *  "symbol": string
    *  "status": string
@@ -1014,7 +1000,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  | 'TAKE_PROFIT' | 'TAKE_PROFIT_LIMIT' | 'LIMIT_MAKER'
    *  "time": number
    *  "updateTime": number
-   * }]} Array containing user's force orders
+   * }]>} Array containing user's force orders
    */
   getForceOrders: payload => privCall('/fapi/v1/forceOrders', payload),
   /**
@@ -1029,23 +1015,18 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  symbol?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "indicators": {
-   *    "isLocked": boolean
-   *    "plannedRecoverTime": number
-   *    "indicator": string
-   *    "value": number
-   *    "triggerValue": number
-   *  }[]
-   *  [ symbol: string ]: {
-   *    "isLocked": boolean
-   *    "plannedRecoverTime": number
-   *    "indicator": string
-   *    "value": number
-   *    "triggerValue": number
-   *  }[]
+   *    [ symbol: string ]: {
+   *      "isLocked": boolean
+   *      "plannedRecoverTime": number
+   *      "indicator": string
+   *      "value": number
+   *      "triggerValue": number
+   *    }[]
+   *  }
    *  "updateTime": number
-   * }} Response object
+   * }>} Response object
    */
   APITradingQuantitativeRulesIndicators: payload => privCall('/fapi/v1/apiTradingStatus', payload),
   /**
@@ -1059,11 +1040,11 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  symbol: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "symbol": string
    *  "makerCommissionRate": string
    *  "takerCommissionRate": string
-   * }} Object containing commission rate
+   * }>} Object containing commission rate
    */
   commissionRate: payload =>
     checkParams('authenticated.futures.trade.commissionRate', payload, ['symbol']) &&
@@ -1086,7 +1067,7 @@ export const authenticatedFuturesUserDataStreams = (privCall) => ({
    * @see https://binance-docs.github.io/apidocs/futures/en/#start-user-data-stream-user_stream
    * @requires APIKEY
    * @requires APISECRET
-   * @returns {{ "listenKey": string }} Object containing listenKey
+   * @returns { Promise<{"listenKey": string}> } Object containing listenKey
    */
   create: () => privCall('/fapi/v1/listenKey', null, 'POST', true),
   /**
@@ -1097,7 +1078,7 @@ export const authenticatedFuturesUserDataStreams = (privCall) => ({
    * @see https://binance-docs.github.io/apidocs/futures/en/#keepalive-user-data-stream-user_stream
    * @requires APIKEY
    * @requires APISECRET
-   * @returns {{}} Empty object
+   * @returns { Promise<{}> } Empty object
    */
   ping: () => privCall('/fapi/v1/listenKey', null, 'PUT', false, true),
   /**
@@ -1107,7 +1088,7 @@ export const authenticatedFuturesUserDataStreams = (privCall) => ({
    * @see https://binance-docs.github.io/apidocs/futures/en/#close-user-data-stream-user_stream
    * @requires APIKEY
    * @requires APISECRET
-   * @returns {{}} Empty object
+   * @returns { Promise<{}> } Empty object
    */
   close: () => privCall('/fapi/v1/listenKey', null, 'DELETE', false, true)
 })

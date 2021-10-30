@@ -23,7 +23,7 @@ export const authenticatedMarginUserDataStreams = (privCall) => ({
    * @see https://binance-docs.github.io/apidocs/spot/en/#listen-key-margin
    * @requires APIKEY
    * @requires APISECRET
-   * @returns {{ "listenKey": string }} Object containing listenKey
+   * @returns { Promise<{ "listenKey": string }> } Object containing listenKey
    */
   create: () => privCall('/sapi/v1/userDataStream', null, 'POST', true),
   /**
@@ -35,7 +35,7 @@ export const authenticatedMarginUserDataStreams = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{ listenKey: string }} payload
-   * @returns {{}} Empty object
+   * @returns { Promise<{}> } Empty object
    */
   ping: payload => privCall('/sapi/v1/userDataStream', payload, 'PUT', false, true),
   /**
@@ -46,7 +46,7 @@ export const authenticatedMarginUserDataStreams = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{ listenKey: string }} payload
-   * @returns {{}} Empty object
+   * @returns { Promise<{}> } Empty object
    */
   close: payload => privCall('/sapi/v1/userDataStream', payload, 'DELETE', false, true)
 })
@@ -71,7 +71,7 @@ export const authenticatedMarginCross = (privCall, kCall) => ({
    *  type: 1 | 2
    *  recvWindow?: number
    * }} payload
-   * @returns { number } tranId 
+   * @returns { Promise<number> } tranId 
    */
   transfer: payload =>
     checkParams('authenticated.margin.cross.transfer', payload, [ 'asset', 'amount', 'type' ]) &&
@@ -86,7 +86,7 @@ export const authenticatedMarginCross = (privCall, kCall) => ({
    *  symbol: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "id": number
    *  "symbol": string
    *  "base": string
@@ -94,7 +94,7 @@ export const authenticatedMarginCross = (privCall, kCall) => ({
    *  "isMarginTrade": boolean
    *  "isBuyAllowed": boolean
    *  "isSellAllowed": boolean
-   * }} Object containing cross margin pair
+   * }>} Object containing cross margin pair
    */
   pair: payload =>
     checkParams('authenticated.margin.cross.pair', payload, ['symbol']) &&
@@ -105,17 +105,21 @@ export const authenticatedMarginCross = (privCall, kCall) => ({
    * @http GET
    * @see https://binance-docs.github.io/apidocs/spot/en/#get-all-cross-margin-pairs-market_data
    * @requires APIKEY
-   * @returns {[{
-   *  "base": string
-   *  "id": number
-   *  "isBuyAllowed": boolean
-   *  "isMarginTrade": boolean
-   *  "isSellAllowed": boolean"
-   *  "quote": string
-   *  "symbol": string
-   * }]} Array containing cross margin pairs
+   * @returns { Promise<{
+   *  [ symbol: string ]: {
+   *    "base": string
+   *    "id": number
+   *    "isBuyAllowed": boolean
+   *    "isMarginTrade": boolean
+   *    "isSellAllowed": boolean"
+   *    "quote": string
+   *    "symbol": string
+   *  }
+   * }>} Array containing cross margin pairs
    */
-  allPairs: () => kCall('/sapi/v1/margin/allPairs'),
+  allPairs: () => kCall('/sapi/v1/margin/allPairs').then(r =>
+    (Array.isArray(r) ? r : [r]).reduce((out, cur) => ((out[ cur.symbol ] = { ...cur }), out), {})
+  ),
   /**
    * Get cross margin transfer history.
    * - Response in descending order.
@@ -136,7 +140,7 @@ export const authenticatedMarginCross = (privCall, kCall) => ({
    *  archived?: boolean
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "rows": [{
    *    "amount": string
    *    "asset": string
@@ -146,7 +150,7 @@ export const authenticatedMarginCross = (privCall, kCall) => ({
    *    "type": 'ROLL_IN' | 'ROLL_OUT'
    *  }]
    *  "total": number
-   * }} Object containing cross transfer history
+   * }>} Object containing cross transfer history
    */
   transferHistory: payload => privCall('/sapi/v1/margin/transfer', payload),
   /**
@@ -157,7 +161,7 @@ export const authenticatedMarginCross = (privCall, kCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{ recvWindow?: number }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "borrowEnabled": boolean
    *  "marginLevel": string
    *  "totalAssetOfBtc": string
@@ -173,7 +177,7 @@ export const authenticatedMarginCross = (privCall, kCall) => ({
    *    "locked": string
    *    "netAsset": string
    *  }]
-   * }} Object containing cross margin account details
+   * }>} Object containing cross margin account details
    */
   account: payload => privCall('/sapi/v1/margin/account', payload)
 })
@@ -194,7 +198,7 @@ export const authenticatedMarginIsolatedUserDataStreams = (privCall) => ({
    * @see https://binance-docs.github.io/apidocs/spot/en/#listen-key-isolated-margin
    * @requires APIKEY
    * @requires APISECRET
-   * @returns {{ "listenKey": string }} Object containing listenKey
+   * @returns { Promise<{ "listenKey": string }> } Object containing listenKey
    */
   create: () => privCall('/sapi/v1/userDataStream/isolated', null, 'POST', true),
   /**
@@ -206,7 +210,7 @@ export const authenticatedMarginIsolatedUserDataStreams = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{ listenKey: string }} payload
-   * @returns {{}} Empty object
+   * @returns { Promise<{}> } Empty object
    */
   ping: payload => privCall('/sapi/v1/userDataStream/isolated', payload, 'PUT', false, true),
   /**
@@ -217,7 +221,7 @@ export const authenticatedMarginIsolatedUserDataStreams = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{ listenKey: string }} payload
-   * @returns {{}} Empty object
+   * @returns { Promise<{}> } Empty object
    */
   close: payload => privCall('/sapi/v1/userDataStream/isolated', payload, 'DELETE', false, true),
 })
@@ -243,7 +247,7 @@ export const authenticatedMarginIsolated = (privCall) => ({
    *  amount: string
    *  recvWindow?: number
    * }} payload
-   * @returns { number } tranId 
+   * @returns { Promise<number> } tranId 
    */
   transfer: payload =>
     checkParams('authenticated.margin.isolated.transfer', payload, [ 'asset', 'symbol', 'amount', 'type' ]) &&
@@ -266,7 +270,7 @@ export const authenticatedMarginIsolated = (privCall) => ({
    *  size?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "rows": [{
    *    "amount": string
    *    "asset": string
@@ -277,7 +281,7 @@ export const authenticatedMarginIsolated = (privCall) => ({
    *    "transTo": 'SPOT' | 'ISOLATED_MARGIN'
    *  }]
    *  "total": number
-   * }} Object containing isolated transfer history
+   * }>} Object containing isolated transfer history
    */
   transferHistory: payload =>
     checkParams('authenticated.margin.isolated.transferHistory', payload, ['symbol']) &&
@@ -296,7 +300,7 @@ export const authenticatedMarginIsolated = (privCall) => ({
    *  symbols?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "assets": [{
    *    "baseAsset": [{
    *      "asset": string
@@ -334,10 +338,10 @@ export const authenticatedMarginIsolated = (privCall) => ({
    *    "liquidateRate": string
    *    "tradeEnabled": boolean
    *  }]
-   *  "totalAssetOfBtc": string
-   *  "totalLiabilityOfBtc": string
-   *  "totalNetAssetOfBtc": string
-   * }} Object containing cross margin account details
+   *  "totalAssetOfBtc"?: string
+   *  "totalLiabilityOfBtc"?: string
+   *  "totalNetAssetOfBtc"?: string
+   * }>} Object containing cross margin account details
    */
   account: payload => privCall('/sapi/v1/margin/isolated/account', payload),
   /**
@@ -351,10 +355,10 @@ export const authenticatedMarginIsolated = (privCall) => ({
    *  symbol: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "success": boolean
    *  "symbol": string
-   * }} Response object
+   * }>} Response object
    */
   disableAccount: payload =>
     checkParams('authenticated.margin.isolated.disableAccount', payload, ['symbol']) &&
@@ -370,10 +374,10 @@ export const authenticatedMarginIsolated = (privCall) => ({
    *  symbol: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "success": boolean
    *  "symbol": string
-   * }} Response object
+   * }>} Response object
    */
   enableAccount: payload => privCall('/sapi/v1/margin/isolated/account', payload, 'POST'),
   /**
@@ -384,10 +388,10 @@ export const authenticatedMarginIsolated = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{ recvWindow?: number }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "enabledAccount": number
    *  "maxAccount": number
-   * }} Response object
+   * }>} Response object
    */
   enabledAccountLimit: payload => privCall('/sapi/v1/margin/isolated/accountLimit', payload),
   /**
@@ -401,17 +405,17 @@ export const authenticatedMarginIsolated = (privCall) => ({
    *  symbol: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "symbol": string
    *  "base": string
    *  "quote": string
    *  "isMarginTrade": boolean
    *  "isBuyAllowed": boolean
    *  "isSellAllowed": boolean
-   * }} Object containing symbol details
+   * }>} Object containing symbol details
    */
   symbol: payload =>
-    checkParams('authenticated.margin.isolated.symbolDetails', payload, ['symbol']) &&
+    checkParams('authenticated.margin.isolated.symbol', payload, ['symbol']) &&
     privCall('/sapi/v1/margin/isolated/pair', payload),
   /**
    * Get all isolated margin symbols.
@@ -421,16 +425,20 @@ export const authenticatedMarginIsolated = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{ recvWindow?: number }} payload
-   * @returns {[{
-   *  "base": string
-   *  "isMarginTrade": boolean
-   *  "isBuyAllowed": boolean
-   *  "isSellAllowed": boolean
-   *  "quote": string
-   *  "symbol": string
-   * }]} Array containing all symbol details
+   * @returns { Promise<{
+   *  [ symbol: string ]: {
+   *    "base": string
+   *    "isMarginTrade": boolean
+   *    "isBuyAllowed": boolean
+   *    "isSellAllowed": boolean
+   *    "quote": string
+   *    "symbol": string
+   *  }
+   * }>} Array containing all symbol details
    */
-  allSymbols: payload => privCall('/sapi/v1/margin/isolated/allPairs', payload),
+  allSymbols: payload => privCall('/sapi/v1/margin/isolated/allPairs', payload).then(r =>
+    (Array.isArray(r) ? r : [r]).reduce((out, cur) => ((out[ cur.symbol ] = { ...cur }), out), {})
+  ),
   userDataStreams: authenticatedMarginIsolatedUserDataStreams(privCall)
 })
 
@@ -475,7 +483,7 @@ export const authenticatedMarginOCO = (privCall) => ({
    *  sideEffectType?: 'NO_SIDE_EFFECT' | 'MARGIN_BUY' | 'AUTO_REPAY'
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "orderListId": number
    *  "contingencyType": string
    *  "listStatusType": string
@@ -507,7 +515,7 @@ export const authenticatedMarginOCO = (privCall) => ({
    *    "side": 'BUY' | 'SELL'
    *    "stopPrice": string
    *  }]
-   * }} Response object
+   * }>} Response object
    */
   order: payload => orderOCO(privCall, payload, '/sapi/v1/margin/order/oco'),
   /**
@@ -529,7 +537,7 @@ export const authenticatedMarginOCO = (privCall) => ({
    *  newClientOrderId: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "orderListId": number
    *  "contingencyType": string
    *  "listStatusType": string
@@ -559,7 +567,7 @@ export const authenticatedMarginOCO = (privCall) => ({
    *    "side": 'BUY' | 'SELL'
    *    "stopPrice": string
    *  }]
-   * }} Response object
+   * }>} Response object
    */
   cancelOrder: payload =>
     checkParams('authenticated.margin.OCO.cancelOrder', payload, ['symbol']) &&
@@ -579,7 +587,7 @@ export const authenticatedMarginOCO = (privCall) => ({
    *  newClientOrderId: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "orderListId": number
    *  "contingencyType": string
    *  "listStatusType": string
@@ -593,7 +601,7 @@ export const authenticatedMarginOCO = (privCall) => ({
    *    "orderId": number
    *    "clientOrderId": string
    *  }]
-   * }} Object containing OCO order
+   * }>} Object containing OCO order
    */
   getOrder: payload => privCall('/sapi/v1/margin/orderList', payload),
   /**
@@ -612,7 +620,7 @@ export const authenticatedMarginOCO = (privCall) => ({
    *  limit: number
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "orderListId": number
    *  "contingencyType": string
    *  "listStatusType": string
@@ -626,7 +634,7 @@ export const authenticatedMarginOCO = (privCall) => ({
    *    "orderId": number
    *    "clientOrderId": string
    *  }]
-   * }]} Array containing OCO order(s)
+   * }]>} Array containing OCO order(s)
    */
   allOrders: payload => privCall('/sapi/v1/margin/allOrderList', payload),
   /**
@@ -641,7 +649,7 @@ export const authenticatedMarginOCO = (privCall) => ({
    *  symbol?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "orderListId": number
    *  "contingencyType": string
    *  "listStatusType": string
@@ -655,7 +663,7 @@ export const authenticatedMarginOCO = (privCall) => ({
    *    "orderId": number
    *    "clientOrderId": string
    *  }]
-   * }]} Array containing open OCO order(s)
+   * }]>} Array containing open OCO order(s)
    */
   openOrders: payload => privCall('/sapi/v1/margin/openOrderList', payload),
 })
@@ -684,7 +692,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  amount: string
    *  recvWindow?: number
    * }} payload
-   * @returns { number } tranId 
+   * @returns { Promise<number> } tranId 
    */
   loan: payload =>
     checkParams('authenticated.margin.loan', payload, [ 'asset', 'amount' ]) &&
@@ -705,7 +713,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  amount: string
    *  recvWindow?: number
    * }} payload
-   * @returns { number } tranId 
+   * @returns { Promise<number> } tranId 
    */
   repay: payload =>
     checkParams('authenticated.margin.repay', payload, [ 'asset', 'amount' ]) &&
@@ -720,14 +728,14 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  asset: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "assetFullName": string
    *  "assetName": string
    *  "isBorrowable": boolean
    *  "isMortgageable": boolean
    *  "userMinBorrow": string
    *  "userMinRepay": string
-   * }} Object containing margin asset
+   * }>} Object containing margin asset
    */
   asset: payload =>
     checkParams('authenticated.margin.asset', payload, ['asset']) &&
@@ -738,14 +746,14 @@ const authenticatedMargin = (privCall, kCall) => ({
    * @http GET
    * @see https://binance-docs.github.io/apidocs/spot/en/#get-all-margin-assets-market_data
    * @requires APIKEY
-   * @returns {[{
+   * @returns { Promise<[{
    *  "assetFullName": string
    *  "assetName": string
    *  "isBorrowable": boolean
    *  "isMortgageable": boolean
    *  "userMinBorrow": number
    *  "userMinRepay": number
-   * }]} Array containing margin assets
+   * }]>} Array containing margin assets
    */
   allAssets: () => kCall('/sapi/v1/margin/allAssets'),
   /**
@@ -758,11 +766,11 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  symbol: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "calcTime": number
    *  "price": string
    *  "symbol": string
-   * }} Object containing price index
+   * }>} Object containing price index
    */
   priceIndex: payload =>
     checkParams('authenticated.margin.priceIndex', payload, ['symbol']) &&
@@ -790,13 +798,13 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  timeInForce?: 'FOK' | 'GTC' | 'IOC'
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "symbol": string
    *  "orderId": number
    *  "clientOrderId": string
    *  "isIsolated": boolean
    *  "transactTime": number
-   * } | {
+   * }> | Promise<{
    *  "symbol": string
    *  "orderId": number
    *  "clientOrderId": string
@@ -811,7 +819,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  "type": 'LIMIT' | 'MARKET'
    *  "isIsolated": boolean
    *  "side": 'BUY' | 'SELL'
-   * } | {
+   * }> | Promise<{
    *  "symbol": string
    *  "orderId": number
    *  "clientOrderId": string
@@ -834,7 +842,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    *    "commission": string
    *    "commissionAsset": string
    *  }]
-   * }} Response object
+   * }>} Response object
    */
   order: payload => order(privCall, payload, '/sapi/v1/margin/order'),
   /**
@@ -853,7 +861,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  newClientOrderId: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "symbol": string
    *  "isIsolated": boolean
    *  "orderId": number
@@ -869,7 +877,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  "timeInForce": 'FOK' | 'GTC' | 'IOC'
    *  "type": 'LIMIT' | 'MARKET'
    *  "side": 'BUY' | 'SELL'
-   * }} Response object
+   * }>} Response object
    */
   cancelOrder: payload =>
     checkParams('authenticated.margin.cancelOrder', payload, ['symbol']) &&
@@ -888,7 +896,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  isIsolated?: 'TRUE' | 'FALSE'
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "symbol": string
    *  "isIsolated": boolean
    *  "origClientOrderId": string
@@ -904,7 +912,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  "timeInForce": 'FOK' | 'GTC' | 'IOC'
    *  "type": 'LIMIT' | 'MARKET'
    *  "side": 'BUY' | 'SELL'
-   * }]} Array containing response objects
+   * }]>} Array containing response objects
    */
   cancelAllOpenOrders: payload =>
     checkParams('authenticated.margin.cancelOrder', payload, ['symbol']) &&
@@ -931,7 +939,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  archived?: boolean
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "rows": [{
    *    "isolatedSymbol": string
    *    "txId": number
@@ -941,7 +949,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    *    "status": string
    *  }]
    *  "total": number
-   * }} Object containing loan record
+   * }>} Object containing loan record
    */
   loanRecord: payload =>
     checkParams('authenticated.margin.loanRecord', payload, ['asset']) &&
@@ -968,7 +976,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  archived?: boolean
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "rows": [{
    *    "isolatedSymbol": string
    *    "amount": string
@@ -980,7 +988,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    *    "txId": number
    *  }]
    *  "total": number
-   * }} Object containing repay record
+   * }>} Object containing repay record
    */
   repayRecord: payload =>
     checkParams('authenticated.margin.repayRecord', payload, ['asset']) &&
@@ -1010,7 +1018,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  archived?: boolean
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "rows": [{
    *    "isolatedSymbol": string
    *    "asset": string
@@ -1021,7 +1029,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    *    "type": 'PERIODIC' | 'ON_BORROW' | 'PERIODIC_CONVERTED' | 'ON_BORROW_CONVERTED'
    *  }]
    *  "total": number
-   * }} Object containing interest history
+   * }>} Object containing interest history
    */
   interestHistory: payload => privCall('/sapi/v1/margin/interestHistory', payload),
   /**
@@ -1041,7 +1049,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  archived?: boolean
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "rows": [{
    *    "avgPrice": string
    *    "executedQty": string
@@ -1055,7 +1063,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    *    "updatedTime": number
    *  }]
    *  "total": number
-   * }} Object containing force liquidation record
+   * }>} Object containing force liquidation record
    */
   forceLiquidationRecord: payload => privCall('/sapi/v1/margin/forceLiquidationRec', payload),
   /**
@@ -1074,7 +1082,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  origClientOrderId?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "clientOrderId": string
    *  "cummulativeQuoteQty": string
    *  "executedQty": string
@@ -1092,7 +1100,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  "timeInForce": 'FOK' | 'GTC' | 'IOC'
    *  "type": 'LIMIT' | 'MARKET'
    *  "updateTime": number
-   * }} Object containing margin account's order
+   * }>} Object containing margin account's order
    */
   getOrder: payload =>
     checkParams('authenticated.margin.getOrder', payload, ['symbol']) &&
@@ -1115,7 +1123,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  origClientOrderId?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "clientOrderId": string
    *  "cummulativeQuoteQty": string
    *  "executedQty": string
@@ -1133,7 +1141,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  "timeInForce": 'FOK' | 'GTC' | 'IOC'
    *  "type": 'LIMIT' | 'MARKET'
    *  "updateTime": number
-   * }]} Object containing margin account's open order(s)
+   * }]>} Object containing margin account's open order(s)
    */
   openOrders: payload => privCall('/sapi/v1/margin/openOrders', payload),
   /**
@@ -1155,7 +1163,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "clientOrderId": string
    *  "cummulativeQuoteQty": string
    *  "executedQty": string
@@ -1173,7 +1181,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  "timeInForce": 'FOK' | 'GTC' | 'IOC'
    *  "type": 'LIMIT' | 'MARKET'
    *  "updateTime": number
-   * }]} Object containing margin account's all order(s)
+   * }]>} Object containing margin account's all order(s)
    */
   allOrders: payload =>
     checkParams('authenticated.margin.allOrders', payload, ['symbol']) &&
@@ -1196,7 +1204,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "commission": string
    *  "commissionAsset": string
    *  "id": number
@@ -1209,7 +1217,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  "symbol": string
    *  "isIsolated": boolean
    *  "time": number
-   * }]} Array containing trade(s)
+   * }]>} Array containing trade(s)
    */
   myTrades: payload =>
     checkParams('authenticated.margin.myTrades', payload, ['symbol']) &&
@@ -1228,10 +1236,10 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  isolatedSymbol?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "amount": string
    *  "borrowLimit": string
-   * }} Object containing max borrow limit
+   * }>} Object containing max borrow limit
    */
   maxBorrow: payload =>
     checkParams('authenticated.margin.maxBorrow', payload, ['asset']) &&
@@ -1249,7 +1257,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  isolatedSymbol?: string
    *  recvWindow?: number
    * }} payload
-   * @returns { string } amount
+   * @returns { Promise<string> } amount
    */
   maxTransferOut: payload =>
     checkParams('authenticated.margin.maxTransferOut', payload, ['asset']) &&
@@ -1267,10 +1275,10 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  interestBNBBurn?: 'true' | 'false'
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "spotBNBBurn": boolean
    *  "interestBNBBurn": boolean
-   * }} Response object
+   * }>} Response object
    */
   setBNBBurn: payload => privCall('/sapi/v1/bnbBurn', payload, 'POST'),
   /**
@@ -1281,10 +1289,10 @@ const authenticatedMargin = (privCall, kCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{ recvWindow?: number }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "spotBNBBurn": boolean
    *  "interestBNBBurn": boolean
-   * }} Response object
+   * }>} Response object
    */
   getBNBBurn: payload => privCall('/sapi/v1/bnbBurn', payload),
   /**
@@ -1302,14 +1310,16 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "asset": string
    *  "dailyInterestRate": string
    *  "timestamp": number
    *  "vipLevel": number
-   * }]} Array containing interest rate history
+   * }]>} Array containing interest rate history
    */
-  getBNBBurn: payload => privCall('/sapi/v1/margin/interestRateHistory', payload),
+  interestRateHistory: payload =>
+    checkParams('authenticated.margin.interestRateHistory', payload, ['asset']) &&
+    privCall('/sapi/v1/margin/interestRateHistory', payload),
   userDataStreams: authenticatedMarginUserDataStreams(privCall),
   cross: authenticatedMarginCross(privCall, kCall),
   isolated: authenticatedMarginIsolated(privCall, kCall),

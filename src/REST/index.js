@@ -2,6 +2,9 @@
 import crypto from 'crypto'
 import zip from 'lodash.zipobject'
 import 'isomorphic-fetch'
+
+
+// Imports:
 import publicSpot from './public/spot'
 import publicFutures from './public/futures'
 import authenticatedSpot from './authenticated/spot'
@@ -226,10 +229,22 @@ export const privateCall = ({
  *  ) => Promise<number[][]> } pubCall
  * @param { any } payload
  * @param { string } endpoint
- * @returns { void | Promise<Dictionary<number>[]> }
+ * @returns { void | Promise<{
+ *  openTime: number
+ *  open: number
+ *  high: number
+ *  low: number
+ *  close: number
+ *  volume: number
+ *  closeTime: number
+ *  quoteVolume: number
+ *  trades: number
+ *  baseAssetVolume: number
+ *  quoteAssetVolume: number
+ * }[]> }
  */
 export const candles = (pubCall, payload, endpoint = '/api/v3/klines') =>
-  checkParams('candles', payload, [ 'symbol', 'interval' ]) &&
+  checkParams('candles', payload, [ 'symbol' ]) &&
   pubCall(endpoint, { interval: '5m', ...payload }).then(candles =>
     candles.map(candle => zip(candleFields, candle))
   )
@@ -472,7 +487,11 @@ export const orderOCO = (privCall, payload = {}, url) => {
  *    data: any
  *  ) => Promise<{ lastUpdateId: number, bids: string[][], asks: string[][] }> } pubCall
  * @param {{ symbol: string, limit?: number }} payload
- * @return { Promise<{ lastUpdateId: number, asks: Dictionary<string>[], bids: Dictionary<string>[] }> | void }
+ * @return { Promise<{
+ *  lastUpdateId: number
+ *  asks: { price: string, quantity: string }[]
+ *  bids: { price: string, quantity: string }[]
+ * }> | void }
  */
 export const book = (pubCall, payload, endpoint = '/api/v3/depth') =>
   checkParams('book', payload, [ 'symbol' ]) &&
@@ -494,8 +513,8 @@ export const book = (pubCall, payload, endpoint = '/api/v3/depth') =>
  *  lastUpdateId: number
  *  messageOutputTime: number
  *  transactionTime: number
- *  asks: Dictionary<string>[]
- *  bids: Dictionary<string>[]
+ *  asks: { price: string, quantity: string }[]
+ *  bids: { price: string, quantity: string }[]
  * }> | void }
  */
 export const futuresBook = (pubCall, payload, endpoint = '/fapi/v1/depth') =>

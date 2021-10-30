@@ -19,7 +19,7 @@ export const publicSpotWallet = (pubCall) => ({
    * @weight 1
    * @http GET
    * @see https://binance-docs.github.io/apidocs/spot/en/#system-status-system
-   * @returns { boolean } System status
+   * @returns { Promise<boolean> } System status
    */
   systemStatus: () => pubCall('/sapi/v1/system/status').then(() => true).catch(() => false)
 })
@@ -35,15 +35,15 @@ export const publicSpotMarketData = (pubCall) => ({
    * @weight 1
    * @http GET
    * @see https://binance-docs.github.io/apidocs/spot/en/#test-connectivity
-   * @returns { boolean } Connectivity status
+   * @returns { Promise<boolean> } Connectivity status
    */
-  ping: () => pubCall('/api/v3/ping').then(() => true).catch(() => false),
+  ping: () => pubCall('/api/v3/ping').then(() => true),
   /**
    * Test connectivity to the Rest API and get the current server time.
    * @weight 1
    * @http GET
    * @see https://binance-docs.github.io/apidocs/spot/en/#check-server-time
-   * @returns { number } serverTime
+   * @returns { Promise<number> } serverTime
    */
   time: () => pubCall('/api/v3/time').then(r => r.serverTime),
   /**
@@ -57,7 +57,7 @@ export const publicSpotMarketData = (pubCall) => ({
    *  symbol?: string
    *  symbols?: string[]
    * }} payload
-   * @returns {{
+   * @returns {Promise<{
    *  "timezone": string
    *  "serverTime": number
    *  "rateLimits": any[]
@@ -89,7 +89,7 @@ export const publicSpotMarketData = (pubCall) => ({
    *      'MARGIN'
    *    ]
    *  }]
-   * }} Object containing exchange information
+   * }>} Object containing exchange information
    */
   exchangeInfo: payload => pubCall('/api/v3/exchangeInfo', payload),
   /**
@@ -108,11 +108,11 @@ export const publicSpotMarketData = (pubCall) => ({
    *  symbol: string
    *  limit: 5 | 10 | 20 | 50 | 100 | 500 | 1000 | 5000
    * }} payload
-   * @returns {{
+   * @returns {Promise<{
    *  "lastUpdateId": number
-   *  "bids": [ string, string ][]
-   *  "asks": [ string, string ][]
-   * }} Object containing order book
+   *  "bids": { "price": string, "quantity": string }[]
+   *  "asks": { "price": string, "quantity": string }[]
+   * }>} Object containing order book
    */
   book: payload => book(pubCall, payload),
   /**
@@ -122,9 +122,9 @@ export const publicSpotMarketData = (pubCall) => ({
    * @see https://binance-docs.github.io/apidocs/spot/en/#recent-trades-list
    * @param {{
    *  symbol: string
-   *  limit: number
+   *  limit?: number
    * }} payload
-   * @returns {[{
+   * @returns {Promise<[{
    *  "id": number
    *  "price": string
    *  "qty": string
@@ -132,9 +132,9 @@ export const publicSpotMarketData = (pubCall) => ({
    *  "time": number
    *  "isBuyerMaker": boolean
    *  "isBestMatch": boolean
-   * }]} Array containing trade objects
+   * }]>} Array containing trade objects
    */
-  trades: payload => checkParams('public.spot.market.trades', payload, ['symbol']) && pubCall('/api/v3/trades', payload),
+  trades: payload => checkParams('public.spot.marketData.trades', payload, ['symbol']) && pubCall('/api/v3/trades', payload),
   /**
    * Get compressed, aggregate trades. Trades that fill at the time, from the same order,
    * with the same price will have the quantity aggregated.
@@ -150,16 +150,17 @@ export const publicSpotMarketData = (pubCall) => ({
    *  endTime?: number
    *  limit?: number
    * }} payload
-   * @returns {[{
-   *  "a": number
-   *  "p": string
-   *  "q": string
-   *  "f": number
-   *  "l": number
-   *  "T": number
-   *  "m": boolean
-   *  "M": boolean
-   * }]} // Array containing aggregate trades 
+   * @returns {Promise<[{
+   *  "aggId": number
+   *  "symbol": string
+   *  "price": string
+   *  "quantity": string
+   *  "firstId": number
+   *  "lastId": number
+   *  "timestamp": number
+   *  "isBuyerMaker": boolean
+   *  "wasBestPrice": boolean
+   * }]>} // Array containing aggregate trades 
    */
   aggTrades: payload => aggTrades(pubCall, payload),
   /**
@@ -173,12 +174,12 @@ export const publicSpotMarketData = (pubCall) => ({
    * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
    * @param {{
    *  symbol: string
-   *  interval: string
+   *  interval?: string
    *  startTime?: number
    *  endTime?: number
    *  limit?: number
    * }} payload
-   * @returns {[{
+   * @returns {Promise<[{
    *  "openTime": number
    *  "open": string
    *  "high": string
@@ -190,7 +191,7 @@ export const publicSpotMarketData = (pubCall) => ({
    *  "trades": number
    *  "baseAssetVolume": string
    *  "quoteAssetVolume": string
-   * }]} Object containing candle
+   * }]>} Object containing candle
    */
   candles: payload => candles(pubCall, payload),
   /**
@@ -199,13 +200,13 @@ export const publicSpotMarketData = (pubCall) => ({
    * @http GET
    * @see https://binance-docs.github.io/apidocs/spot/en/#current-average-price
    * @param {{ symbol: string }} payload
-   * @returns {{
+   * @returns {Promise<{
    *  "mins": number
    *  "price": string
-   * }} 
+   * }>} 
    */
   avgPrice: payload =>
-    checkParams('public.spot.market.avgPrice', payload, ['symbol']) && pubCall('/api/v3/avgPrice', payload),
+    checkParams('public.spot.marketData.avgPrice', payload, ['symbol']) && pubCall('/api/v3/avgPrice', payload),
   /**
    * 24 hour rolling window price change statistics.
    * 
@@ -216,7 +217,7 @@ export const publicSpotMarketData = (pubCall) => ({
    * @http GET
    * @see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics
    * @param {{ symbol?: string }} payload
-   * @returns {{
+   * @returns {Promise<{
    *  "symbol": string
    *  "priceChange": string
    *  "priceChangePercent": string
@@ -236,7 +237,25 @@ export const publicSpotMarketData = (pubCall) => ({
    *  "firstId": number
    *  "lastId": number
    *  "count": number
-   * }} Object containing ticker price change statistics
+   * }> | Promise<[{
+   *  "symbol": string
+   *  "priceChange": string
+   *  "priceChangePercent": string
+   *  "weightedAvgPrice": string
+   *  "prevClosePrice": string
+   *  "lastPrice": string
+   *  "lastQty": string
+   *  "openPrice": string
+   *  "highPrice": string
+   *  "lowPrice": string
+   *  "volume": string
+   *  "quoteVolume": string
+   *  "openTime": number
+   *  "closeTime": number
+   *  "firstId": number
+   *  "lastId": number
+   *  "count": number
+   * }]>} Object or array containing ticker price change statistics
    */
   dailyTickerStats: payload => pubCall('/api/v3/ticker/24hr', payload),
   /**
@@ -246,22 +265,22 @@ export const publicSpotMarketData = (pubCall) => ({
    * @http GET
    * @see https://binance-docs.github.io/apidocs/spot/en/#symbol-price-ticker
    * @param {{ symbol?: string }} payload
-   * @returns {{
+   * @returns {Promise<{
    *  [ symbol: string ]: string
-   * }} Object containing latest price(s) for symbol(s)
+   * }>} Object containing latest price(s) for symbol(s)
    */
   price: payload =>
     pubCall('/api/v3/ticker/price', payload).then(r =>
-      (Array.isArray(r) ? r : [r]).reduce((out, cur) => ((out[cur.symbol] = cur.price), out), {})
+      (Array.isArray(r) ? r : [r]).reduce((out, cur) => ((out[ cur.symbol ] = cur.price), out), {})
     ),
   /**
    * Best price(s)/qty(s) on the order book for a symbol or symbols.
    * - If the `symbol` is not sent, bookTickers for all symbols will be returned in an array.
    * @weight 1 for a single symbol, 2 when the symbol parameter is omitted
    * @http GET
-   * @see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#symbol-order-book-ticker
+   * @see https://binance-docs.github.io/apidocs/spot/en/#symbol-order-book-ticker
    * @param {{ symbol?: string }} payload
-   * @returns {{
+   * @returns {Promise<{
    *  [ symbol: string ]: {
    *    "symbol": string
    *    "bidPrice": string
@@ -269,10 +288,10 @@ export const publicSpotMarketData = (pubCall) => ({
    *    "askPrice": string
    *    "askQty": string
    *  }
-   * }} Object containing latest price(s) for symbol(s)
+   * }>} Object containing latest price(s) for symbol(s)
    */
-  bookTicker: () =>
-    pubCall('/api/v3/ticker/bookTicker').then(r =>
+  bookTicker: payload =>
+    pubCall('/api/v3/ticker/bookTicker', payload).then(r =>
       (Array.isArray(r) ? r : [r]).reduce((out, cur) => ((out[cur.symbol] = cur), out), {})
     )
 })

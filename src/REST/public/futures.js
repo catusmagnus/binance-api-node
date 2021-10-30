@@ -1,3 +1,7 @@
+// Packages:
+import zip from 'lodash.zipobject'
+
+
 // Imports:
 import {
   futuresBook,
@@ -24,15 +28,15 @@ export const publicFuturesMarketData = (pubCall) => ({
    * @weight 1
    * @http GET
    * @see https://binance-docs.github.io/apidocs/futures/en/#test-connectivity
-   * @returns {{}} Empty objects
+   * @returns { Promise<boolean> } Connectivity status
    */
-  ping: () => pubCall('/fapi/v1/ping').then(() => true).catch(() => false),
+  ping: () => pubCall('/fapi/v1/ping').then(() => true),
   /**
    * Test connectivity to the Rest API and get the current server time.
    * @weight 1
    * @http GET
    * @see https://binance-docs.github.io/apidocs/futures/en/#check-server-time
-   * @returns { number } serverTime
+   * @returns { Promise<number> } serverTime
    */
   time: () => pubCall('/fapi/v1/time').then(r => r.serverTime),
   /**
@@ -40,7 +44,7 @@ export const publicFuturesMarketData = (pubCall) => ({
    * @weight 1
    * @http GET
    * @see https://binance-docs.github.io/apidocs/futures/en/#exchange-information
-   * @returns {{
+   * @returns { Promise<{
    *  "exchangeFilters": []
    *  "rateLimits": [{
    *    "interval": string
@@ -86,7 +90,7 @@ export const publicFuturesMarketData = (pubCall) => ({
    *    "marketTakeBound": string
    *  }]
    *  "timezone": string
-   * }} Object containing exchange information
+   * }>} Object containing exchange information
    */
   exchangeInfo: () => pubCall('/fapi/v1/exchangeInfo'),
   /**
@@ -105,13 +109,13 @@ export const publicFuturesMarketData = (pubCall) => ({
    *  symbol: number
    *  limit?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "lastUpdateId": number
    *  "messageOutputTime": number
    *  "transactionTime": number
-   *  "asks": [ string, string ][]
-   *  "bids": [ string, string ][]
-   * }} Object containing order book
+   *  "asks": { "price": string, "quantity": string }[]
+   *  "bids": { "price": string, "quantity": string }[]
+   * }>} Object containing order book
    */
   book: payload => futuresBook(pubCall, payload, '/fapi/v1/depth'),
   /**
@@ -125,14 +129,14 @@ export const publicFuturesMarketData = (pubCall) => ({
    *  symbol: number
    *  limit?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "id": number
    *  "price": string
    *  "qty": string
    *  "quoteQty": string
    *  "time": number
    *  "isBuyerMaker": boolean
-   * }]} Array containing trades
+   * }]>} Array containing trades
    */
   trades: payload =>
     checkParams('public.futures.marketData.trades', payload, ['symbol']) &&
@@ -154,7 +158,7 @@ export const publicFuturesMarketData = (pubCall) => ({
    *  endTime?: number
    *  limit?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "aggId": number
    *  "symbol": string
    *  "price": string
@@ -163,11 +167,22 @@ export const publicFuturesMarketData = (pubCall) => ({
    *  "lastId": number
    *  "timestamp": number
    *  "isBuyerMaker": boolean
-   * }]} Array containing aggregate trades
+   * }]>} Array containing aggregate trades
    */
   aggTrades: payload =>
     checkParams('public.futures.marketData.aggTrades', payload, ['symbol']) &&
-    pubCall('fapi/v1/aggTrades', payload)
+    pubCall('fapi/v1/aggTrades', payload).then(trades =>
+      trades.map(trade => ({
+        aggId: trade.a,
+        symbol: payload.symbol,
+        price: trade.p,
+        quantity: trade.q,
+        firstId: trade.f,
+        lastId: trade.l,
+        timestamp: trade.T,
+        isBuyerMaker: trade.m
+      }))
+    )
     .then(trades => trades.map(trade => ({
       aggId: trade.a,
       symbol: payload.symbol,
@@ -193,12 +208,12 @@ export const publicFuturesMarketData = (pubCall) => ({
    * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
    * @param {{
    *  symbol: number
-   *  interval: string
+   *  interval?: string
    *  startTime?: number
    *  endTime?: number
    *  limit?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "openTime": number
    *  "open": string
    *  "high": string
@@ -210,7 +225,7 @@ export const publicFuturesMarketData = (pubCall) => ({
    *  "trades": number
    *  "baseAssetVolume": string
    *  "quoteAssetVolume": string
-   * }]} Array containing candles
+   * }]>} Array containing candles
    */
   candles: payload => candles(pubCall, payload, '/fapi/v1/klines'),
   /**
@@ -237,12 +252,12 @@ export const publicFuturesMarketData = (pubCall) => ({
    * @param {{
    *  pair: string
    *  contractType: 'PERPETUAL' | 'CURRENT_MONTH' | 'NEXT_MONTH' | 'CURRENT_QUARTER' | 'NEXT_QUARTER'
-   *  interval: string
+   *  interval?: string
    *  startTime?: number
    *  endTime?: number
    *  limit?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "openTime": number
    *  "open": string
    *  "high": string
@@ -254,10 +269,10 @@ export const publicFuturesMarketData = (pubCall) => ({
    *  "trades": number
    *  "buyVolume": string
    *  "quoteAssetVolume": string
-   * }]} Array containing continuous candles
+   * }]>} Array containing continuous candles
    */
   continuousKlines: payload =>
-    checkParams('public.futures.marketData.continuousKlines', payload, [ 'pair', 'contractType', 'interval' ]) &&
+    checkParams('public.futures.marketData.continuousKlines', payload, [ 'pair', 'contractType' ]) &&
     pubCall('/fapi/v1/continuousKlines', { interval: '5m', ...payload }).then(continuousKlines =>
       continuousKlines.map(continuousKline => zip(continuousKlineFields, continuousKline)),
     ),
@@ -278,25 +293,23 @@ export const publicFuturesMarketData = (pubCall) => ({
    * @see https://binance-docs.github.io/apidocs/futures/en/#index-price-kline-candlestick-data
    * @param {{
    *  pair: string
-   *  interval: string
+   *  interval?: string
    *  startTime?: number
    *  endTime?: number
    *  limit?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "openTime": number
    *  "open": string
    *  "high": string
    *  "low": string
    *  "close": number
-   *  "_i1": number
    *  "closeTime": number
-   *  "_i2": string
    *  "bisicData": number
-   * }]} Array containing continuous candles
+   * }]>} Array containing continuous candles
    */
   indexPriceKlines: payload =>
-    checkParams('public.futures.marketData.indexPriceKlines', payload, [ 'pair', 'interval' ]) &&
+    checkParams('public.futures.marketData.indexPriceKlines', payload, [ 'pair' ]) &&
     pubCall('/fapi/v1/indexPriceKlines', { interval: '5m', ...payload }).then(indexPriceKlines =>
       indexPriceKlines.map(indexPriceKline => {
         // Remove fields to be ignored.
@@ -322,25 +335,23 @@ export const publicFuturesMarketData = (pubCall) => ({
    * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price-kline-candlestick-data
    * @param {{
    *  symbol: string
-   *  interval: string
+   *  interval?: string
    *  startTime?: number
    *  endTime?: number
    *  limit?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "openTime": number
    *  "open": string
    *  "high": string
    *  "low": string
    *  "close": number
-   *  "_i1": number
    *  "closeTime": number
-   *  "_i2": string
    *  "bisicData": number
-   * }]} Array containing continuous candles
+   * }]>} Array containing continuous candles
    */
   markPriceKlines: payload =>
-    checkParams('public.futures.marketData.markPriceKlines', payload, [ 'symbol', 'interval' ]) &&
+    checkParams('public.futures.marketData.markPriceKlines', payload, [ 'symbol' ]) &&
     pubCall('/fapi/v1/markPriceKlines', { interval: '5m', ...payload }).then(markPriceKlines =>
       markPriceKlines.map(markPriceKline => {
         // Remove fields to be ignored.
@@ -355,7 +366,7 @@ export const publicFuturesMarketData = (pubCall) => ({
    * @http GET
    * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
    * @param {{ symbol?: string }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "symbol": string
    *  "markPrice": string
    *  "indexPrice": string
@@ -364,7 +375,16 @@ export const publicFuturesMarketData = (pubCall) => ({
    *  "nextFundingTime": number
    *  "interestRate": string
    *  "time": number
-   * }} Object containing mark price and funding rate
+   * }> | Promise<[{
+   *  "symbol": string
+   *  "markPrice": string
+   *  "indexPrice": string
+   *  "estimatedSettlePrice": string
+   *  "lastFundingRate": string
+   *  "nextFundingTime": number
+   *  "interestRate": string
+   *  "time": number
+   * }]>} Object or array containing mark price and funding rate
    */
   markPrice: payload => pubCall('/fapi/v1/premiumIndex', payload),
   /**
@@ -381,11 +401,11 @@ export const publicFuturesMarketData = (pubCall) => ({
    *  endTime?: number
    *  limit?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "symbol": string
    *  "fundingRate": string
    *  "fundingTime": number
-   * }]} Array containing funding rate history
+   * }]>} Array containing funding rate history
    */
   fundingRateHistory: payload => pubCall('/fapi/v1/fundingRate', payload),
   /**
@@ -395,7 +415,7 @@ export const publicFuturesMarketData = (pubCall) => ({
    * @http GET
    * @see https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics
    * @param {{ symbol?: string }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "symbol": string
    *  "priceChange": string
    *  "priceChangePercent": string
@@ -413,7 +433,7 @@ export const publicFuturesMarketData = (pubCall) => ({
    *  "firstId": number
    *  "lastId": number
    *  "count": number
-   * } | [{
+   * }> | Promise<[{
    *  "symbol": string
    *  "priceChange": string
    *  "priceChangePercent": string
@@ -431,7 +451,7 @@ export const publicFuturesMarketData = (pubCall) => ({
    *  "firstId": number
    *  "lastId": number
    *  "count": number
-   * }]} Object or array containing ticker price statistics
+   * }]>} Object or array containing ticker price statistics
    */
   dailyTickerStats: payload => pubCall('/fapi/v1/ticker/24hr', payload),
   /**
@@ -441,13 +461,13 @@ export const publicFuturesMarketData = (pubCall) => ({
    * @http GET
    * @see https://binance-docs.github.io/apidocs/futures/en/#symbol-price-ticker
    * @param {{ symbol?: string }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  [ symbol: string ]: string
-   * }} Object containing ticker price statistics
+   * }>} Object containing ticker price statistics
    */
-  price: () =>
-    pubCall('/fapi/v1/ticker/price').then(r =>
-      (Array.isArray(r) ? r : [r]).reduce((out, cur) => ((out[cur.symbol] = cur.price), out), {})
+  price: payload =>
+    pubCall('/fapi/v1/ticker/price', payload).then(r =>
+      (Array.isArray(r) ? r : [r]).reduce((out, cur) => ((out[ cur.symbol ] = cur.price), out), {})
     ),
   /**
    * Best price/qty on the order book for a symbol or symbols.
@@ -456,7 +476,7 @@ export const publicFuturesMarketData = (pubCall) => ({
    * @http GET
    * @see https://binance-docs.github.io/apidocs/futures/en/#symbol-order-book-ticker
    * @param {{ symbol?: string }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  [ symbol: string ]: {
    *    "symbol": string
    *    "bidPrice": string
@@ -465,10 +485,10 @@ export const publicFuturesMarketData = (pubCall) => ({
    *    "askQty": string
    *    "time": number
    *  }
-   * }} Object containing ticker price statistics
+   * }>} Object containing ticker price statistics
    */
-  bookTicker: () =>
-    pubCall('/fapi/v1/ticker/bookTicker').then(r =>
+  bookTicker: payload =>
+    pubCall('/fapi/v1/ticker/bookTicker', payload).then(r =>
       (Array.isArray(r) ? r : [r]).reduce((out, cur) => ((out[cur.symbol] = cur), out), {})
     ),
   /**
@@ -477,11 +497,11 @@ export const publicFuturesMarketData = (pubCall) => ({
    * @http GET
    * @see https://binance-docs.github.io/apidocs/futures/en/#open-interest
    * @param {{ symbol: string }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "openInterest": string
    *  "symbol": string
    *  "time": number
-   * }} Object containing open interest of a specific symbol
+   * }>} Object containing open interest of a specific symbol
    */
   openInterest: payload =>
     checkParams('public.futures.marketData.openInterest', payload, ['symbol']) &&
@@ -495,21 +515,21 @@ export const publicFuturesMarketData = (pubCall) => ({
    * @see https://binance-docs.github.io/apidocs/futures/en/#open-interest-statistics
    * @param {{
    *  symbol: string
-   *  period: '5m' | '15m' | '30m' | '1h' | '2h' | '4h' | '6h' | '12h' | '1d'
+   *  period?: '5m' | '15m' | '30m' | '1h' | '2h' | '4h' | '6h' | '12h' | '1d'
    *  limit?: number
    *  startTime?: number
    *  endTime?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "symbol": string
    *  "sumOpenInterest": string
    *  "sumOpenInterestValue": string
    *  "timestamp": string
-   * }]} Array containing open interest history of a specific symbol
+   * }]>} Array containing open interest history of a specific symbol
    */
   openInterestHistory: payload =>
-    checkParams('public.futures.marketData.openInterestHistory', payload, [ 'symbol', 'period' ]) &&
-    pubCall('/futures/data/openInterestHist', payload),
+    checkParams('public.futures.marketData.openInterestHistory', payload, ['symbol']) &&
+    pubCall('/futures/data/openInterestHist', { period: '5m', ...payload }),
   /**
    * Get top trader long/short ratio (Positions).
    * - If `startTime` and `endTime` are not sent, the most recent data is returned.
@@ -519,22 +539,22 @@ export const publicFuturesMarketData = (pubCall) => ({
    * @see https://binance-docs.github.io/apidocs/futures/en/#top-trader-long-short-ratio-positions
    * @param {{
    *  symbol: string
-   *  period: '5m' | '15m' | '30m' | '1h' | '2h' | '4h' | '6h' | '12h' | '1d'
+   *  period?: '5m' | '15m' | '30m' | '1h' | '2h' | '4h' | '6h' | '12h' | '1d'
    *  limit?: number
    *  startTime?: number
    *  endTime?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "symbol": string
    *  "longShortRatio": string
    *  "longAccount": string
    *  "shortAccount": string
    *  "timestamp": string
-   * }]} Array containing top trader long/short ratio (Positions)
+   * }]>} Array containing top trader long/short ratio (Positions)
    */
   topLongShortPositionRatio: payload =>
-    checkParams('public.futures.marketData.topLongShortPositionRatio', payload, [ 'symbol', 'period' ]) &&
-    pubCall('/futures/data/topLongShortPositionRatio', payload),
+    checkParams('public.futures.marketData.topLongShortPositionRatio', payload, ['symbol']) &&
+    pubCall('/futures/data/topLongShortPositionRatio', { period: '5m', ...payload }),
   /**
    * Get long/short ratio.
    * - If `startTime` and `endTime` are not sent, the most recent data is returned.
@@ -544,22 +564,22 @@ export const publicFuturesMarketData = (pubCall) => ({
    * @see https://binance-docs.github.io/apidocs/futures/en/#long-short-ratio
    * @param {{
    *  symbol: string
-   *  period: '5m' | '15m' | '30m' | '1h' | '2h' | '4h' | '6h' | '12h' | '1d'
+   *  period?: '5m' | '15m' | '30m' | '1h' | '2h' | '4h' | '6h' | '12h' | '1d'
    *  limit?: number
    *  startTime?: number
    *  endTime?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "symbol": string
    *  "longShortRatio": string
    *  "longAccount": string
    *  "shortAccount": string
    *  "timestamp": string
-   * }]} Array containing long/short ratio
+   * }]>} Array containing long/short ratio
    */
   longShortRatio: payload =>
-    checkParams('public.futures.marketData.longShortRatio', payload, [ 'symbol', 'period' ]) &&
-    pubCall('/futures/data/globalLongShortAccountRatio', payload),
+    checkParams('public.futures.marketData.longShortRatio', payload, ['symbol']) &&
+    pubCall('/futures/data/globalLongShortAccountRatio', { period: '5m', ...payload }),
   /**
    * Get taker buy/sell volume.
    * - If `startTime` and `endTime` are not sent, the most recent data is returned.
@@ -569,21 +589,21 @@ export const publicFuturesMarketData = (pubCall) => ({
    * @see https://binance-docs.github.io/apidocs/futures/en/#taker-buy-sell-volume
    * @param {{
    *  symbol: string
-   *  period: '5m' | '15m' | '30m' | '1h' | '2h' | '4h' | '6h' | '12h' | '1d'
+   *  period?: '5m' | '15m' | '30m' | '1h' | '2h' | '4h' | '6h' | '12h' | '1d'
    *  limit?: number
    *  startTime?: number
    *  endTime?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "buySellRatio": string
    *  "buyVol": string
    *  "sellVol": string
    *  "timestamp": string
-   * }]} Array containing long/short ratio
+   * }]>} Array containing long/short ratio
    */
   takerBuySellVolume: payload =>
-    checkParams('public.futures.marketData.takerLongShortRatio', payload, [ 'symbol', 'period' ]) &&
-    pubCall('/futures/data/takerlongshortRatio', payload),
+    checkParams('public.futures.marketData.takerBuySellVolume', payload, ['symbol']) &&
+    pubCall('/futures/data/takerlongshortRatio', { period: '5m', ...payload }),
   /**
    * The BLVT NAV system is based on Binance Futures, so the endpoint is based on `fapi`.
    * @weight 1
@@ -591,12 +611,12 @@ export const publicFuturesMarketData = (pubCall) => ({
    * @see https://binance-docs.github.io/apidocs/futures/en/#historical-blvt-nav-kline-candlestick
    * @param {{
    *  symbol: string
-   *  interval: '5m' | '15m' | '30m' | '1h' | '2h' | '4h' | '6h' | '12h' | '1d'
+   *  interval?: '5m' | '15m' | '30m' | '1h' | '2h' | '4h' | '6h' | '12h' | '1d'
    *  startTime?: number
    *  endTime?: number
    *  limit?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "openTime": number
    *  "open": string
    *  "high": string
@@ -605,10 +625,10 @@ export const publicFuturesMarketData = (pubCall) => ({
    *  "realLeverage": string
    *  "closeTime": number
    *  "NAVUpdateCount": number
-   * }]} Array containing historical BLVT NAV klines/candlesticks
+   * }]>} Array containing historical BLVT NAV klines/candlesticks
    */
   historicalBLVTNAVKlines: payload =>
-    checkParams('public.futures.marketData.historicalBLVTNAVKlines', payload, [ 'symbol', 'interval' ]) &&
+    checkParams('public.futures.marketData.historicalBLVTNAVKlines', payload, ['symbol']) &&
     pubCall('/fapi/v1/lvtKlines', { interval: '5m', ...payload }).then(historicalBLVTNAVKlines =>
       historicalBLVTNAVKlines.map(historicalBLVTNAVKline => {
         // Remove fields to be ignored.
@@ -623,7 +643,7 @@ export const publicFuturesMarketData = (pubCall) => ({
    * @http GET
    * @see https://binance-docs.github.io/apidocs/futures/en/#composite-index-symbol-information
    * @param {{ symbol?: string }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "symbol": string
    *  "time": number
    *  "component": string
@@ -633,9 +653,9 @@ export const publicFuturesMarketData = (pubCall) => ({
    *    "weightInQuantity": string
    *    "weightInPercentage": string
    *  }]
-   * }]} Array containing composite index symbol information
+   * }]>} Array containing composite index symbol information
    */
-  compositeIndexSymbolInfo: () => pubCall('/fapi/v1/indexInfo'),
+  compositeIndexSymbolInfo: payload => pubCall('/fapi/v1/indexInfo'),
 })
 
 /**

@@ -22,7 +22,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{ recvWindow?: number }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "coin": string
    *  "depositAllEnable": boolean
    *  "free": string
@@ -53,11 +53,11 @@ export const authenticatedSpotWallet = (privCall) => ({
    *    "withdrawMin": string
    *    "sameAddress": boolean
    *  }]
-   *  "storage": 
+   *  "storage": string
    *  "trading": boolean
    *  "withdrawAllEnable": boolean
    *  "withdrawing": string
-   * }]} Array of coin information objects
+   * }]>} Array of coin information objects
    */
   accountCoins: payload => privCall('/sapi/v1/capital/config/getall', payload),
   /**
@@ -76,7 +76,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "code": number
    *  "msg": string
    *  "snapshotVos": [{
@@ -90,7 +90,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    *    "type": string
    *    "updateTime": number
    *  }]
-   * }} Object containing daily account snapshot
+   * }>} Object containing daily account snapshot
    */
   dailyAccountSnapshot: payload =>
     checkParams('authenticated.spot.wallet.dailyAccountSnapshot', payload, ['type']) &&
@@ -106,7 +106,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{ recvWindow?: number }} payload
-   * @returns {{}} Empty object
+   * @returns { Promise<{}> } Empty object
    */
   disableFastWithdrawSwitch: payload => privCall('/sapi/v1/account/disableFastWithdrawSwitch', payload, 'POST'),
   /**
@@ -121,7 +121,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{ recvWindow?: number }} payload
-   * @returns {{}} Empty object
+   * @returns { Promise<{}> } Empty object
    */
   enableFastWithdrawSwitch: payload => privCall('/sapi/v1/account/enableFastWithdrawSwitch', payload, 'POST'),
   /**
@@ -145,11 +145,11 @@ export const authenticatedSpotWallet = (privCall) => ({
    *  name?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{ "id": string }} Object containing withdraw ID 
+   * @returns { Promise<string> } id
    */
   withdraw: payload =>
     checkParams('authenticated.spot.wallet.withdraw', payload, [ 'coin', 'address', 'amount' ]) &&
-    privCall('/sapi/v1/capital/withdraw/apply', payload, 'POST'),
+    privCall('/sapi/v1/capital/withdraw/apply', payload, 'POST').then(r => r.id),
   /**
    * Fetch deposit history (supporting network).
    * - Please notice the default `startTime` and `endTime` to make sure that time interval is within 0-90 days.
@@ -168,7 +168,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "amount": string
    *  "coin": string
    *  "network": string
@@ -180,7 +180,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    *  "transferType": number
    *  "unlockConfirm": string
    *  "confirmTimes": string
-   * }]} Array containing deposit objects
+   * }]>} Array containing deposit objects
    */
   depositHistory: payload => privCall('/sapi/v1/capital/deposit/hisrec', payload),
   /**
@@ -203,7 +203,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    *  endTime?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "address": string
    *  "amount": string
    *  "applyTime": string
@@ -216,7 +216,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    *  "transactionFee": string
    *  "confirmNo": number
    *  "txId": string
-   * }]} Array containing withdraw objects
+   * }]>} Array containing withdraw objects
    */
   withdrawHistory: payload => privCall('/sapi/v1/capital/withdraw/history', payload),
   /**
@@ -233,12 +233,12 @@ export const authenticatedSpotWallet = (privCall) => ({
    *  network?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "address": string
    *  "coin": string
    *  "tag": string
    *  "url": string
-   * }} Object containing deposit address
+   * }>} Object containing deposit address
    */
   depositAddress: payload =>
     checkParams('authenticated.spot.wallet.depositAddress', payload, ['coin']) &&
@@ -251,11 +251,9 @@ export const authenticatedSpotWallet = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{ recvWindow?: number }} payload
-   * @returns {{
-   *  "data": string
-   * }} Object containing account status
+   * @returns { Promise<string> } data
    */
-  accountStatus: payload => privCall('/sapi/v1/account/status', payload),
+  accountStatus: payload => privCall('/sapi/v1/account/status', payload).then(r => r.data),
   /**
    * Fetch account API trading status details.
    * @weight 1
@@ -264,7 +262,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{ recvWindow?: number }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "data": {
    *    "isLocked": boolean
    *    "plannedRecoverTime": number
@@ -283,7 +281,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    *    }
    *    "updateTime": number
    *  }
-   * }} Object containing account API trading status
+   * }>} Object containing account API trading status
    */
   accountAPITradingStatus: payload => privCall('/sapi/v1/account/apiTradingStatus', payload),
   /**
@@ -298,7 +296,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    *  endTime?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "total": number
    *  "userAssetDribblets": [{
    *    "operateTime": number
@@ -314,7 +312,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    *      "fromAsset": string
    *    }]
    *  }]
-   * }} Object containing dust log.
+   * }>} Object containing dust log.
    */
   dustLog: payload => privCall('/sapi/v1/asset/dribblet', payload),
   /**
@@ -328,7 +326,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    *  asset: string[]
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "totalServiceCharge": string
    *  "totalTransfered": string
    *  "transferResult": [{
@@ -339,7 +337,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    *    "tranId": number
    *    "transferedAmount": string
    *  }]
-   * }} Object containing dust transfer results 
+   * }>} Object containing dust transfer results 
    */
   dustTransfer: payload =>
     checkParams('authenticated.spot.wallet.dustTransfer', payload, ['asset']) &&
@@ -358,7 +356,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "rows": [{
    *    "id": number
    *    "amount": string
@@ -368,7 +366,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    *    "tranId": number
    *  }]
    *  "total": number
-   * }} Object containing asset dividend record list
+   * }>} Object containing asset dividend record list
    */
   assetDividendRecord: payload => privCall('/sapi/v1/asset/assetDividend', payload),   
   /**
@@ -384,7 +382,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    *  asset?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  [ key: string ]: {
    *    minWithdrawAmount: string
    *    depositStatus: boolean
@@ -392,7 +390,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    *    withdrawStatus: boolean
    *    depositTip?: string
    *  }
-   * }} Object containing asset detail(s)
+   * }>} Object containing asset detail(s)
    */
   assetDetail: payload => privCall('/sapi/v1/asset/assetDetail', payload),
   /**
@@ -406,13 +404,19 @@ export const authenticatedSpotWallet = (privCall) => ({
    *  symbol?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
-   *  "symbol": string
-   *  "makerCommission": string
-   *  "takerCommission": string
-   * }]} Array of fee objects
+   * @returns { Promise<{
+   *  [ symbol: string ]: {
+   *    "makerCommission": string
+   *    "takerCommission": string
+   *  }
+   * }>} Object of fee objects
    */
-  tradeFee: payload => privCall('/sapi/v1/asset/tradeFee', payload),
+  tradeFee: payload => privCall('/sapi/v1/asset/tradeFee', payload).then(r =>
+    (Array.isArray(r) ? r : [r]).reduce((out, cur) => ((out[ cur.symbol ] = {
+      makerCommission: cur.makerCommission,
+      takerCommission: cur.takerCommission
+    }), out), {})
+  ),
   /**
    * You need to enable `Permits Universal Transfer` option for the api key which requests this endpoint.
    * - `fromSymbol` must be sent when type are `ISOLATEDMARGIN_MARGIN` and `ISOLATEDMARGIN_ISOLATEDMARGIN`
@@ -462,11 +466,11 @@ export const authenticatedSpotWallet = (privCall) => ({
    *  toSymbol?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{ "tranId": number }} Object containing tranId
+   * @returns { Promise<number> } tranId
    */
   universalTransfer: payload =>
     checkParams('authenticated.spot.wallet.universalTransfer', payload, [ 'type', 'asset', 'amount' ]) &&
-    privCall('/sapi/v1/asset/transfer', payload, 'POST'),
+    privCall('/sapi/v1/asset/transfer', payload, 'POST').then(r => r.tranId),
   /**
    * Get user universal transfer history.
    * - `fromSymbol` must be sent when type are `ISOLATEDMARGIN_MARGIN` and `ISOLATEDMARGIN_ISOLATEDMARGIN`.
@@ -491,7 +495,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    *  toSymbol?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "rows": [{
    *    "asset": string
    *    "amount": string
@@ -501,7 +505,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    *    "timestamp": number
    *  }]
    *  "total": number
-   * }} Object containing user universal transfer history list
+   * }>} Object containing user universal transfer history list
    */
   universalTransferHistory: payload =>
     checkParams('authenticated.spot.wallet.universalTransferHistory', payload, ['type']) &&
@@ -521,14 +525,14 @@ export const authenticatedSpotWallet = (privCall) => ({
    *  needBtcValuation?: 'true' | 'false'
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "asset": string
    *  "free": string
    *  "locked": string
    *  "freeze": string
    *  "withdrawing": string
    *  "btcValuation": string
-   * }]} Array containing funding wallet details
+   * }]>} Array containing funding wallet details
    */
   fundingWallet: payload => privCall('/sapi/v1/asset/get-funding-asset', payload, 'POST'),
   /**
@@ -539,7 +543,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{ recvWindow?: number }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "ipRestrict": boolean
    *  "createTime": number
    *  "enableWithdrawals": boolean
@@ -550,8 +554,8 @@ export const authenticatedSpotWallet = (privCall) => ({
    *  "enableFutures": boolean
    *  "enableMargin": boolean
    *  "enableSpotAndMarginTrading": boolean
-   *  "tradingAuthorityExpirationTime": number
-   * }} Response object
+   *  "tradingAuthorityExpirationTime"?: number
+   * }>} Response object
    */
   apiPermission: payload =>  privCall('/sapi/v1/account/apiRestrictions', payload),
 })
@@ -576,7 +580,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  subAccountString: string
    *  recvWindow?: number
    * }} payload
-   * @returns { string } email
+   * @returns { Promise<string> } email
    */
   createSubAccount: payload =>
     checkParams('authenticated.spot.subAccount.createSubAccount', payload, ['subAccountString']) &&
@@ -595,11 +599,11 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "email": string
    *  "isFreeze": boolean
    *  "createTime": number
-   * }]} Array containing sub-account objects 
+   * }]>} Array containing sub-account objects 
    */
   list: payload => privCall('/sapi/v1/sub-account/list', payload).then(r => r.subAccounts),
   /**
@@ -620,7 +624,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "from": string
    *  "to": string
    *  "asset": string
@@ -628,7 +632,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  "status": string
    *  "tranId": number
    *  "time": number
-   * }]} Array containing transfer objects 
+   * }]>} Array containing transfer objects 
    */
   spotAssetTransferHistory: payload => privCall('/sapi/v1/sub-account/sub/transfer/history', payload),
   /**
@@ -639,15 +643,15 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{
-   *  email?: string
-   *  futuresType?: number
+   *  email: string
+   *  futuresType: number
    *  startTime?: number
    *  endTime?: number
    *  page?: number
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "success": boolean
    *  "futuresType": number
    *  "transfers": [{
@@ -659,9 +663,11 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *    "tranId": number
    *    "time": number
    *  }]
-   * }} Object containing transfer objects 
+   * }>} Object containing transfer objects 
    */
-  futuresAssetTransferHistory: payload => privCall('/sapi/v1/sub-account/futures/internalTransfer', payload),
+  futuresAssetTransferHistory: payload =>
+    checkParams('authenticated.spot.subAccount.futuresAssetTransferHistory', payload, [ 'email', 'futuresType' ]) &&
+    privCall('/sapi/v1/sub-account/futures/internalTransfer', payload),
   /**
    * Sub-account futures asset transfer (For Master Account).
    * - Master account can transfer max 2000 times a minute.
@@ -678,10 +684,10 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  amount: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "success": boolean
    *  "txnId": string
-   * }} Object containing transfer receipt 
+   * }>} Object containing transfer receipt 
    */
   futuresAssetTransfer: payload =>
     checkParams('authenticated.spot.subAccount.futuresAssetTransfer', payload, [ 'fromEmail', 'toEmail', 'futuresType', 'asset', 'amount' ]) &&
@@ -697,15 +703,21 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  email: string
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
-   *  "asset": string
-   *  "free": number
-   *  "locked": number
-   * }]} Array containing asset balances 
+   * @returns { Promise<{
+   *  [ asset: string ]: {
+   *    "free": number
+   *    "locked": number
+   *  }
+   * }>} Object containing asset balances 
    */
   getAssets: payload =>
     checkParams('authenticated.spot.subAccount.getAssets', payload, ['email']) &&
-    privCall('/sapi/v3/sub-account/assets', payload).then(r => r.balances),
+    privCall('/sapi/v3/sub-account/assets', payload).then(r =>
+      (Array.isArray(r.balances) ? r.balances : [ r.balances ]).reduce((out, cur) => ((out[ cur.asset ] = {
+        free: cur.free,
+        locked: cur.locked
+      }), out), {})
+    ),
   /**
    * Get BTC valued asset summary of sub-accounts (For Master Account).
    * @weight 1
@@ -719,14 +731,14 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  size?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "totalCount": number
    *  "masterAccountTotalAsset": string
    *  "spotSubUserAssetBtcVoList": [{
    *    "email": string
    *    "totalAsset": string
    *  }]
-   * }} Object containing account summary
+   * }>} Object containing account summary
    */
   summary: payload => privCall('/sapi/v1/sub-account/spotSummary', payload),
   /**
@@ -743,12 +755,12 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  size?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "address": string
    *  "coin": string
    *  "tag": string
    *  "url": string
-   * }} Object containing deposit address
+   * }>} Object containing deposit address
    */
   getDepositAddress: payload =>
     checkParams('authenticated.spot.subAccount.getDepositAddress', payload, [ 'email', 'coin' ]) &&
@@ -770,7 +782,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  offset?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "amount": string
    *  "coin": string
    *  "network": string
@@ -781,7 +793,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  "insertTime": number
    *  "transferType": number
    *  "confirmTimes": string
-   * }]} Array containing deposit history
+   * }]>} Array containing deposit history
    */
   getDepositHistory: payload =>
     checkParams('authenticated.spot.subAccount.getDepositHistory', payload, ['email']) &&
@@ -799,7 +811,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  email: string
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "email": string
    *  "isSubUserEnabled": boolean
    *  "isUserActive": boolean
@@ -807,7 +819,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  "isMarginEnabled": boolean
    *  "isFutureEnabled": boolean
    *  "mobile": number
-   * }]} Array containing sub-account statuses
+   * }]>} Array containing sub-account statuses
    */
   status: payload =>
     checkParams('authenticated.spot.subAccount.status', payload, ['email']) &&
@@ -823,10 +835,10 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  email: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "email": string
    *  "isMarginEnabled": boolean
-   * }} Response object
+   * }>} Response object
    */
   enableMargin: payload =>
     checkParams('authenticated.spot.subAccount.enableMargin', payload, ['email']) &&
@@ -842,7 +854,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  email: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "email": string
    *  "marginLevel": string
    *  "totalAssetOfBtc": string
@@ -861,7 +873,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *    "locked": string
    *    "netAsset": string
    *  }]
-   * }} Object containing sub-account margin account details
+   * }>} Object containing sub-account margin account details
    */
   getMarginAccountDetail: payload =>
     checkParams('authenticated.spot.subAccount.getMarginAccountDetail', payload, ['email']) &&
@@ -874,7 +886,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{ recvWindow?: number }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "totalAssetOfBtc": string
    *  "totalLiabilityOfBtc": string
    *  "totalNetAssetOfBtc": string
@@ -884,7 +896,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *    "totalLiabilityOfBtc": string
    *    "totalNetAssetOfBtc": string
    *  }]
-   * }} Object containing sub-account margin account summary
+   * }>} Object containing sub-account margin account summary
    */
   getMarginAccountSummary: payload => privCall('/sapi/v1/sub-account/margin/accountSummary', payload),
   /**
@@ -898,10 +910,10 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  email: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "email": string
    *  "isFuturesEnabled": boolean
-   *  }} Response object
+   *  }>} Response object
    */
   enableFutures: payload =>
     checkParams('authenticated.spot.subAccount.enableFutures', payload, ['email']) &&
@@ -917,7 +929,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  email: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "email": string
    *  "asset": string
    *  "assets": [{
@@ -944,7 +956,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  "totalUnrealizedProfit": string
    *  "totalWalletBalance": string
    *  "updateTime": number
-   * }} Object containing sub-account futures account details
+   * }>} Object containing sub-account futures account details
    */
   getFuturesAccountDetail: payload =>
     checkParams('authenticated.spot.subAccount.getFuturesAccountDetail', payload, ['email']) &&
@@ -957,7 +969,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{ recvWindow?: number }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "totalInitialMargin": string
    *  "totalMaintenanceMargin": string
    *  "totalMarginBalance": string
@@ -977,7 +989,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *    "totalWalletBalance": string
    *    "asset": string
    *  }]
-   * }} Object containing sub-account futures account summary
+   * }>} Object containing sub-account futures account summary
    */
   getFuturesAccountSummary: payload => privCall('/sapi/v1/sub-account/futures/accountSummary', payload),
   /**
@@ -991,7 +1003,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  email: string
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "entryPrice": string
    *  "leverage": string
    *  "maxNotional": string
@@ -1000,7 +1012,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  "positionAmount": string
    *  "symbol": string
    *  "unrealizedProfit": string
-   * }]} Array containing future's position risks
+   * }]>} Array containing future's position risks
    */
   getFuturesPositionRisk: payload =>
     checkParams('authenticated.spot.subAccount.getFuturesPositionRisk', payload, ['email']) &&
@@ -1025,7 +1037,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  type: 1 | 2 | 3 | 4
    *  recvWindow?: number
    * }} payload
-   * @returns { string } txnId
+   * @returns { Promise<string> } txnId
    */
   futuresTransfer: payload =>
     checkParams('authenticated.spot.subAccount.futuresTransfer', payload, [ 'email', 'asset', 'amount', 'type' ]) &&
@@ -1048,7 +1060,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  type: 1 | 2
    *  recvWindow?: number
    * }} payload
-   * @returns { string } txnId
+   * @returns { Promise<string> } txnId
    */
   marginTransfer: payload =>
     checkParams('authenticated.spot.subAccount.marginTransfer', payload, [ 'email', 'asset', 'amount', 'type' ]) &&
@@ -1066,7 +1078,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  amount: string
    *  recvWindow?: number
    * }} payload
-   * @returns { string } txnId
+   * @returns { Promise<string> } txnId
    */
   transferToSiblingSubAccount: payload =>
     checkParams('authenticated.spot.subAccount.transferToSiblingSubAccount', payload, [ 'toEmail', 'asset', 'amount' ]) &&
@@ -1083,7 +1095,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  amount: string
    *  recvWindow?: number
    * }} payload
-   * @returns { string } txnId
+   * @returns { Promise<string> } txnId
    */
   transferToMaster: payload =>
     checkParams('authenticated.spot.subAccount.transferToMaster', payload, [ 'asset', 'amount' ]) &&
@@ -1111,7 +1123,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "counterParty": string
    *  "email": string
    *  "type": 1 | 2
@@ -1122,7 +1134,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  "status": string
    *  "tranId": number
    *  "time": number
-   * }]} Array containing transfer history
+   * }]>} Array containing transfer history
    */
   transferHistory: payload => privCall('/sapi/v1/sub-account/transfer/subUserHistory', payload),
   /**
@@ -1147,7 +1159,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  amount: string
    *  recvWindow?: number
    * }} payload
-   * @returns { string } tranId
+   * @returns { Promise<string> } tranId
    */
   universalTransfer: payload =>
     checkParams('authenticated.spot.subAccount.universalTransfer', payload, [ 'fromAccountType', 'toAccountType', 'asset', 'amount' ]) &&
@@ -1173,7 +1185,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "tranId": number
    *  "fromEmail": string
    *  "toEmail": string
@@ -1183,7 +1195,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  "toAccountType": 'SPOT' | 'USDT_FUTURE' | 'COIN_FUTURE'
    *  "status": string
    *  "createTimeStamp": number
-   * }]} Array containing universal transfer history
+   * }]>} Array containing universal transfer history
    */
   universalTransferHistory: payload => privCall('/sapi/v1/sub-account/universalTransfer', payload),
   /**
@@ -1202,7 +1214,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  futuresType: 1 | 2
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "futureAccountResp": {
    *    "email": string
    *    "asset": string
@@ -1251,7 +1263,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *    "feeTier": number
    *    "updateTime": number
    *  }
-   * }} Object containing sub-account futures account details V2
+   * }>} Object containing sub-account futures account details V2
    */
   getFuturesAccountDetailV2: payload =>
     checkParams('authenticated.spot.subAccount.getFuturesAccountDetailV2', payload, [ 'email', 'futuresType' ]) &&
@@ -1273,7 +1285,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *    "futureAccountSummaryResp": {
    *    "totalInitialMargin": string
    *    "totalMaintenanceMargin": string
@@ -1309,7 +1321,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *      "asset": string
    *    }]
    *  }
-   * }} Object containing sub-account futures account summary V2
+   * }>} Object containing sub-account futures account summary V2
    */
   getFuturesAccountSummaryV2: payload =>
     checkParams('authenticated.spot.subAccount.getFuturesAccountSummaryV2', payload, ['futuresType']) &&
@@ -1330,7 +1342,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  futuresType: 1 | 2
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "futurePositionRiskVos": [{
    *    "entryPrice": string
    *    "leverage": string
@@ -1372,10 +1384,10 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  enableBlvt: boolean
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "email": string
    *  "enableBlvt": boolean
-   * }} Response object
+   * }>} Response object
    */
   enableBLVT: payload =>
     checkParams('authenticated.spot.subAccount.enableBLVT', payload, [ 'email', 'enableBlvt' ]) &&
@@ -1393,7 +1405,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  amount: string
    *  recvWindow?: number
    * }} payload
-   * @returns { string } tranId
+   * @returns { Promise<string> } tranId
    */
   depositToManaged: payload =>
     checkParams('authenticated.spot.subAccount.depositToManaged', payload, [ 'email', 'asset', 'amount' ]) &&
@@ -1409,14 +1421,14 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  email: string
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "coin": string
    *  "name": string
    *  "totalBalance": string
    *  "availableBalance": string
    *  "inOrder": string
    *  "btcValue": string
-   * }]} Array containing sub-account asset details
+   * }]>} Array containing sub-account asset details
    */
   getManagedAccountDetails: payload =>
     checkParams('authenticated.spot.subAccount.getManagedAccountDetails', payload, ['email']) &&
@@ -1435,7 +1447,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  transferDate?: number
    *  recvWindow?: number
    * }} payload
-   * @returns { string } tranId
+   * @returns { Promise<string> } tranId
    */
   withdrawFromManaged: payload =>
     checkParams('authenticated.spot.subAccount.withdrawFromManaged', payload, [ 'fromEmail', 'asset', 'amount' ]) &&
@@ -1460,7 +1472,7 @@ export const authenticatedSpotMarketData = (kCall) => ({
    *  limit?: number
    *  fromId?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "id": number
    *  "price": string
    *  "qty": string
@@ -1468,7 +1480,7 @@ export const authenticatedSpotMarketData = (kCall) => ({
    *  "time": number
    *  "isBuyerMaker": boolean
    *  "isBestMatch": boolean
-   * }]} Array of old trade objects
+   * }]>} Array of old trade objects
    */
   historicalTrades: payload =>
     checkParams('authenticated.spot.marketData.historicalTrades', payload, ['symbol']) &&
@@ -1514,7 +1526,7 @@ export const authenticatedSpotTradeOCO = (privCall) => ({
    *  newOrderRespType?: 'ACK' | 'RESULT' | 'FULL'
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "orderListId": number
    *  "contingencyType": string
    *  "listStatusType": string
@@ -1545,7 +1557,7 @@ export const authenticatedSpotTradeOCO = (privCall) => ({
    *    "side": 'BUY' | 'SELL'
    *    "stopPrice?": string
    *  }]
-   * }} Object containing OCO order object
+   * }>} Object containing OCO order object
    */
   order: payload => orderOCO(privCall, payload, '/api/v3/order/oco', 'POST'),
   /**
@@ -1565,7 +1577,7 @@ export const authenticatedSpotTradeOCO = (privCall) => ({
    *  newClientOrderId?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "orderListId": number
    *  "contingencyType": string
    *  "listStatusType": string
@@ -1596,7 +1608,7 @@ export const authenticatedSpotTradeOCO = (privCall) => ({
    *    "side": 'BUY' | 'SELL'
    *    "stopPrice?": string
    *  }]
-   * }} Object containing cancelled OCO order object
+   * }>} Object containing cancelled OCO order object
    */
   cancelOrder: payload =>
     checkParams('authenticated.spot.trade.OCO.cancelOrder', payload, ['symbol']) &&
@@ -1613,7 +1625,7 @@ export const authenticatedSpotTradeOCO = (privCall) => ({
    *  origClientOrderId?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "orderListId": number
    *  "contingencyType": string
    *  "listStatusType": string
@@ -1626,7 +1638,7 @@ export const authenticatedSpotTradeOCO = (privCall) => ({
    *    "orderId": number
    *    "clientOrderId": string
    *  }]
-   * }} Object containing OCO order object
+   * }>} Object containing OCO order object
    */
   getOrder: payload => privCall('/api/v3/orderList', payload),
   /**
@@ -1643,7 +1655,7 @@ export const authenticatedSpotTradeOCO = (privCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "orderListId": number
    *  "contingencyType": string
    *  "listStatusType": string
@@ -1656,7 +1668,7 @@ export const authenticatedSpotTradeOCO = (privCall) => ({
    *    "orderId": number
    *    "clientOrderId": string
    *  }]
-   * }]} Array containing OCO order objects
+   * }]>} Array containing OCO order objects
    */
   allOrders: payload => privCall('/api/v3/allOrderList', payload),
   /**
@@ -1667,7 +1679,7 @@ export const authenticatedSpotTradeOCO = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{ recvWindow?: number }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "orderListId": number
    *  "contingencyType": string
    *  "listStatusType": string
@@ -1680,7 +1692,7 @@ export const authenticatedSpotTradeOCO = (privCall) => ({
    *    "orderId": number
    *    "clientOrderId": string
    *  }]
-   * }]} Array containing open OCO order objects
+   * }]>} Array containing open OCO order objects
    */
   openOrders: payload => privCall('/api/v3/openOrderList', payload)
 })
@@ -1713,9 +1725,9 @@ export const authenticatedSpotTrade = (privCall) => ({
    *  newOrderRespType?: 'ACK' | 'RESULT' | 'FULL'
    *  recvWindow?: number
    * }} payload
-   * @returns {{}} Empty object
+   * @returns { Promise<{}> } Empty object
    */
-  orderTest: payload => order(privCall, payload, '/api/v3/order/test', 'POST'),
+  orderTest: payload => order(privCall, payload, '/api/v3/order/test'),
   /**
    * Send in a new order.
    * 
@@ -1770,7 +1782,7 @@ export const authenticatedSpotTrade = (privCall) => ({
    *  newOrderRespType?: 'ACK' | 'RESULT' | 'FULL'
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "symbol": string
    *  "orderId": number
    *  "orderListId": number
@@ -1812,7 +1824,7 @@ export const authenticatedSpotTrade = (privCall) => ({
    *    "commission": string
    *    "commissionAsset": string
    *  }]
-   * }} Response object
+   * }>} Response object
    */
   order: payload => order(privCall, payload, '/api/v3/order'),
   /**
@@ -1831,7 +1843,7 @@ export const authenticatedSpotTrade = (privCall) => ({
    *  newClientOrderId?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "symbol": string
    *  "origClientOrderId": string
    *  "orderId": number
@@ -1844,9 +1856,10 @@ export const authenticatedSpotTrade = (privCall) => ({
    *  "status": 'CANCELED' | 'EXPIRED' | 'FILLED' | 'NEW'
    *  | 'PARTIALLY_FILLED' | 'PENDING_CANCEL' | 'REJECTED'
    *  "timeInForce": 'FOK' | 'GTC' | 'IOC'
-   *  "type": 'LIMIT' | 'MARKET' | 'STOP_LOSS' | 
+   *  "type": 'LIMIT' | 'MARKET' | 'STOP_LOSS' | 'STOP_LOSS_LIMIT'
+   *  | 'TAKE_PROFIT' | 'TAKE_PROFIT_LIMIT' | 'LIMIT_MAKER'
    *  "side": 'BUY' | 'SELL'
-   * }} Response object
+   * }>} Response object
    */
   cancelOrder: payload =>
     checkParams('authenticated.spot.trade.cancelOrder', payload, ['symbol']) &&
@@ -1864,7 +1877,7 @@ export const authenticatedSpotTrade = (privCall) => ({
    *  symbol: string
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "symbol": string
    *  "origClientOrderId": string
    *  "orderId": number
@@ -1879,7 +1892,7 @@ export const authenticatedSpotTrade = (privCall) => ({
    *  "timeInForce": 'FOK' | 'GTC' | 'IOC'
    *  "type": 'LIMIT' | 'MARKET'
    *  "side": 'BUY' | 'SELL'
-   * }]} Array containing cancel order objects
+   * }]>} Array containing cancel order objects
    */
   cancelOpenOrders: payload =>
     checkParams('authenticated.spot.trade.cancelOpenOrders', payload, ['symbol']) &&
@@ -1897,11 +1910,11 @@ export const authenticatedSpotTrade = (privCall) => ({
    * @requires APISECRET
    * @param {{
    *  symbol: string
-   *  orderId: number
-   *  origClientOrderId: queryString
+   *  orderId?: number
+   *  origClientOrderId?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "symbol": string
    *  "orderId": number
    *  "orderListId": number
@@ -1921,7 +1934,7 @@ export const authenticatedSpotTrade = (privCall) => ({
    *  "updateTime": number
    *  "isWorking": boolean
    *  "origQuoteOrderQty": string
-   * }} Object containing order status
+   * }>} Object containing order status
    */
   getOrder: payload =>
     checkParams('authenticated.spot.trade.getOrder', payload, ['symbol']) &&
@@ -1936,10 +1949,10 @@ export const authenticatedSpotTrade = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{
-   *  symbol: string
+   *  symbol?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "symbol": string
    *  "orderId": number
    *  "orderListId": number
@@ -1959,11 +1972,9 @@ export const authenticatedSpotTrade = (privCall) => ({
    *  "updateTime": number
    *  "isWorking": boolean
    *  "origQuoteOrderQty": string
-   * }]} Array containing open order objects
+   * }]>} Array containing open order objects
    */
-  openOrders: payload =>
-    checkParams('authenticated.spot.trade.openOrders', payload, ['symbol']) &&
-    privCall('/api/v3/openOrders', payload),
+  openOrders: payload => privCall('/api/v3/openOrders', payload),
   /**
    * Get all account orders; active, canceled, or filled.
    * 
@@ -1985,7 +1996,7 @@ export const authenticatedSpotTrade = (privCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "symbol": string
    *  "orderId": number
    *  "orderListId": number
@@ -2005,7 +2016,7 @@ export const authenticatedSpotTrade = (privCall) => ({
    *  "updateTime": number
    *  "isWorking": boolean
    *  "origQuoteOrderQty": string
-   * }]} Array containing order objects
+   * }]>} Array containing order objects
    */
   allOrders: payload =>
     checkParams('authenticated.spot.trade.allOrders', payload, ['symbol']) &&
@@ -2018,7 +2029,7 @@ export const authenticatedSpotTrade = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{ recvWindow?: number }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "makerCommission": number
    *  "takerCommission": number
    *  "buyerCommission": number
@@ -2034,7 +2045,7 @@ export const authenticatedSpotTrade = (privCall) => ({
    *    "locked": string
    *  }]
    *  "permissions": string[]
-   * }} Object containing account information
+   * }>} Object containing account information
    */
   account: payload => privCall('/api/v3/account', payload),
   /**
@@ -2056,7 +2067,7 @@ export const authenticatedSpotTrade = (privCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {[
+   * @returns { Promise<[{
    *  "symbol": string
    *  "id": number
    *  "orderId": number
@@ -2070,7 +2081,7 @@ export const authenticatedSpotTrade = (privCall) => ({
    *  "isBuyer": boolean
    *  "isMaker": boolean
    *  "isBestMatch": boolean
-   * ]} Array containing trade objects
+   * }]>} Array containing trade objects
    */
   myTrades: payload =>
     checkParams('authenticated.spot.trade.myTrades', payload, ['symbol']) &&
@@ -2094,7 +2105,7 @@ export const authenticatedSpotUserDataStreams = (privCall) => ({
    * @see https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
    * @requires APIKEY
    * @requires APISECRET
-   * @returns {{ "listenKey": string }} Object containing listenKey
+   * @returns { Promise<{ "listenKey": string }> } Object containing listenKey
    */
   create: () => privCall('/api/v3/userDataStream', null, 'POST', true),
   /**
@@ -2106,7 +2117,7 @@ export const authenticatedSpotUserDataStreams = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{ listenKey: string }} payload
-   * @returns {{}} Empty object
+   * @returns { Promise<{}> } Empty object
    */
   ping: payload =>
     checkParams('authenticated.spot.userDataStreams.ping', payload, ['listenKey']) &&
@@ -2119,7 +2130,7 @@ export const authenticatedSpotUserDataStreams = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{ listenKey: string }} payload
-   * @returns {{}} Empty object
+   * @returns { Promise<{}> } Empty object
    */
   close: payload =>
     checkParams('authenticated.spot.userDataStreams.close', payload, ['listenKey']) &&
@@ -2148,12 +2159,12 @@ export const authenticatedSpotSavings = (privCall) => ({
      *  size?: number
      *  recvWindow?: number
      * }} payload
-     * @returns {[{
+     * @returns { Promise<[{
      *  "asset": string
      *  "avgAnnualInterestRate": string
      *  "canPurchase": boolean
      *  "canRedeem": boolean
-     *  "dailyInterestPerThousand": string
+     *  "dailyInterestPerThousand"?: string
      *  "featured": boolean
      *  "minPurchaseAmount": string
      *  "productId": string
@@ -2161,7 +2172,7 @@ export const authenticatedSpotSavings = (privCall) => ({
      *  "status": string
      *  "upLimit": string
      *  "upLimitPerUser": string
-     * }]} Array containing flexible product list
+     * }]>} Array containing flexible product list
      */
     list: payload => privCall('/sapi/v1/lending/daily/product/list', payload),
     /**
@@ -2175,10 +2186,10 @@ export const authenticatedSpotSavings = (privCall) => ({
      *  productId: string
      *  recvWindow?: number
      * }} payload
-     * @returns {{
+     * @returns { Promise<{
      *  "asset": string
      *  "leftQuota": string
-     * }} Response object
+     * }>} Response object
      */
     leftDailyPurchaseQuota: payload =>
       checkParams('authenticated.spot.savings.flexibleProduct.leftDailyPurchaseQuota', payload, ['productId']) &&
@@ -2195,7 +2206,7 @@ export const authenticatedSpotSavings = (privCall) => ({
      *  amount: string
      *  recvWindow?: number
      * }} payload
-     * @returns { string } purchaseId
+     * @returns { Promise<string> } purchaseId
      */
     purchase: payload =>
       checkParams('authenticated.spot.savings.flexibleProduct.purchase', payload, [ 'productId', 'amount' ]) &&
@@ -2212,12 +2223,12 @@ export const authenticatedSpotSavings = (privCall) => ({
      *  type: 'FAST' | 'NORMAL'
      *  recvWindow?: number
      * }} payload
-     * @returns {{
+     * @returns { Promise<{
      *  "asset": string
      *  "dailyQuota": string
      *  "leftQuota": string
      *  "minRedemptionAmount": string
-     * }} Response object
+     * }>} Response object
      */
     leftDailyRedemptionQuota: payload =>
       checkParams('authenticated.spot.savings.flexibleProduct.leftDailyRedemptionQuota', payload, [ 'productId', 'type' ]) &&
@@ -2235,7 +2246,7 @@ export const authenticatedSpotSavings = (privCall) => ({
      *  type: 'FAST' | 'NORMAL'
      *  recvWindow?: number
      * }} payload
-     * @returns {{}} Empty object
+     * @returns { Promise<{}> } Empty object
      */
     redeem: payload =>
       checkParams('authenticated.spot.savings.flexibleProduct.redeem', payload, [ 'productId', 'amount', 'type' ]) &&
@@ -2251,7 +2262,7 @@ export const authenticatedSpotSavings = (privCall) => ({
      *  asset: string
      *  recvWindow?: number
      * }} payload
-     * @returns {[{
+     * @returns { Promise<[{
      *  "annualInterestRate": string
      *  "asset": string
      *  "avgAnnualInterestRate": string
@@ -2266,7 +2277,7 @@ export const authenticatedSpotSavings = (privCall) => ({
      *  "todayPurchasedAmount": string
      *  "totalAmount": string
      *  "totalInterest": string
-     * }]} Array containing flexible product position(s)
+     * }]>} Array containing flexible product position(s)
      */
     position: payload =>
       checkParams('authenticated.spot.savings.flexibleProduct.position', payload, ['asset']) &&
@@ -2290,7 +2301,7 @@ export const authenticatedSpotSavings = (privCall) => ({
      *  size?: number
      *  recvWindow?: number
      * }} payload
-     * @returns {[{
+     * @returns { Promise<[{
      *  "asset": string
      *  "displayPriority": number
      *  "duration": number
@@ -2306,9 +2317,8 @@ export const authenticatedSpotSavings = (privCall) => ({
      *  "projectName": string
      *  "status": string
      *  "type": 'ACTIVITY' | 'CUSTOMIZED_FIXED'
-     *  "upLimit": string
      *  "withAreaLimitation": boolean
-     * }]} Array containing fixed and activity project list
+     * }]>} Array containing fixed and activity project list
      */
     list: payload =>
       checkParams('authenticated.spot.savings.fixedActivityProject.list', payload, ['type']) &&
@@ -2326,7 +2336,7 @@ export const authenticatedSpotSavings = (privCall) => ({
      *  amount: string
      *  recvWindow?: number
      * }} payload
-     * @returns { string } purchaseId
+     * @returns { Promise<string> } purchaseId
      */
     purchase: payload =>
       checkParams('authenticated.spot.savings.fixedActivityProject.purchase', payload, [ 'projectId', 'lot' ]) &&
@@ -2344,7 +2354,7 @@ export const authenticatedSpotSavings = (privCall) => ({
      *  status: 'HOLDING' | 'REDEEMED'
      *  recvWindow?: number
      * }} payload
-     * @returns {[{
+     * @returns { Promise<[{
      *  "asset": string
      *  "canTransfer": boolean
      *  "createTimestamp": number
@@ -2362,7 +2372,7 @@ export const authenticatedSpotSavings = (privCall) => ({
      *  "startTime": number
      *  "status": 'HOLDING' | 'REDEEMED'
      *  "type": 'ACTIVITY' | 'CUSTOMIZED_FIXED'
-     * }]} Array containing fixed/activity project position(s)
+     * }]>} Array containing fixed/activity project position(s)
      */
     position: payload =>
       checkParams('authenticated.spot.savings.fixedActivityProject.position', payload, ['asset']) &&
@@ -2376,7 +2386,7 @@ export const authenticatedSpotSavings = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{ recvWindow?: number }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "positionAmountVos": [{
    *    "amount": string
    *    "amountInBTC": string
@@ -2389,7 +2399,7 @@ export const authenticatedSpotSavings = (privCall) => ({
    *  "totalFixedAmountInUSDT": string
    *  "totalFlexibleInBTC": string
    *  "totalFlexibleInUSDT": string
-   * }} Object containing lending account details
+   * }>} Object containing lending account details
    */
   lendingAccount: payload => privCall('/sapi/v1/lending/union/account', payload),
   /**
@@ -2410,7 +2420,7 @@ export const authenticatedSpotSavings = (privCall) => ({
    *  size?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "amount": string
    *  "asset": string
    *  "createTime": number
@@ -2427,7 +2437,7 @@ export const authenticatedSpotSavings = (privCall) => ({
    *  "productName": string
    *  "purchaseId": number
    *  "status": string
-   * }]} Array containing purchase record
+   * }]>} Array containing purchase record
    */
   purchaseRecord: payload =>
     checkParams('authenticated.spot.savings.purchaseRecord', payload, ['lendingType']) &&
@@ -2450,7 +2460,7 @@ export const authenticatedSpotSavings = (privCall) => ({
    *  size?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "amount": string
    *  "asset": string
    *  "createTime": number
@@ -2459,7 +2469,7 @@ export const authenticatedSpotSavings = (privCall) => ({
    *  "projectName": string
    *  "status": string
    *  "type": string
-   * }] | [{
+   * }]> | Promise<[{
    *  "amount": string
    *  "asset": string
    *  "createTime": number
@@ -2469,7 +2479,7 @@ export const authenticatedSpotSavings = (privCall) => ({
    *  "projectName": string
    *  "startTime": number
    *  "status": string
-   * }]} Array containing redemption record
+   * }]>} Array containing redemption record
    */
   redemptionRecord: payload =>
     checkParams('authenticated.spot.savings.redemptionRecord', payload, ['lendingType']) &&
@@ -2492,13 +2502,13 @@ export const authenticatedSpotSavings = (privCall) => ({
    *  size?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "asset": string
    *  "interest": string
    *  "lendingType": string
    *  "productName": string
    *  "time": number
-   * }]} Array containing redemption record
+   * }]>} Array containing redemption record
    */
   interestHistory: payload =>
     checkParams('authenticated.spot.savings.interestHistory', payload, ['lendingType']) &&
@@ -2517,11 +2527,11 @@ export const authenticatedSpotSavings = (privCall) => ({
    *  positionId?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "dailyPurchaseId": number
    *  "success": boolean
    *  "time": number
-   * }} Response object
+   * }>} Response object
    */
   changeToDailyPosition: payload =>
     checkParams('authenticated.spot.savings.changeToDailyPosition', payload, [ 'projectId', 'lot' ]) &&
@@ -2543,7 +2553,7 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
    * @see https://binance-docs.github.io/apidocs/spot/en/#acquiring-algorithm-market_data
    * @requires APIKEY
    * @param {{ recvWindow?: number }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "code": number
    *  "msg": string
    *  "data": [{
@@ -2552,7 +2562,7 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
    *    "poolIndex": number
    *    "unit": string
    *  }]
-   * }} Response object
+   * }>} Response object
    */
   acquiringAlgorithm: payload => kCall('/sapi/v1/mining/pub/algoList', payload),
   /**
@@ -2562,7 +2572,7 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
    * @see https://binance-docs.github.io/apidocs/spot/en/#acquiring-coinname-market_data
    * @requires APIKEY
    * @param {{ recvWindow?: number }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "code": number
    *  "msg": string
    *  "data": [{
@@ -2572,7 +2582,7 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
    *    "algoId": number
    *    "algoName": string
    *  }]
-   * }} Response object
+   * }>} Response object
    */
   acquiringCoinName: payload => kCall('/sapi/v1/mining/pub/coinList', payload),
   /**
@@ -2588,7 +2598,7 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
    *  workerName: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "code": number
    *  "msg": string
    *  "data": [{
@@ -2600,7 +2610,7 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
    *      "reject": number
    *    }]
    *  }]
-   * }} Response object
+   * }>} Response object
    */
   detailedMinerList: payload =>
     checkParams('authenticated.spot.mining.detailedMinerList', payload, [ 'algo', 'userName', 'workerName' ]) &&
@@ -2621,7 +2631,7 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
    *  workerStatus?: 0 | 1 | 2 | 3 
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "code": number
    *  "msg": string
    *  "data": [{
@@ -2637,7 +2647,7 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
    *    "totalNum": number
    *    "pageSize": number
    *  }]
-   * }} Response object
+   * }>} Response object
    */
   minerList: payload =>
     checkParams('authenticated.spot.mining.minerList', payload, [ 'algo', 'userName' ]) &&
@@ -2659,7 +2669,7 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
    *  pageSize?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "code": number
    *  "msg": string
    *  "data": [{
@@ -2676,7 +2686,7 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
    *    "totalNum": number
    *    "pageSize": number
    *  }]
-   * }} Response object containing earnings list
+   * }>} Response object containing earnings list
    */
   earningsList: payload =>
     checkParams('authenticated.spot.mining.earningsList', payload, [ 'algo', 'userName' ]) &&
@@ -2698,7 +2708,7 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
    *  pageSize?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "code": number
    *  "msg": string
    *  "data": [{
@@ -2712,7 +2722,7 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
    *    "totalNum": number
    *    "pageSize": number
    *  }]
-   * }} Response object containing extra bonus list
+   * }>} Response object containing extra bonus list
    */
   extraBonusList: payload =>
     checkParams('authenticated.spot.mining.extraBonusList', payload, [ 'algo', 'userName' ]) &&
@@ -2730,10 +2740,10 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
      *  pageSize?: number
      *  recvWindow?: number
      * }} payload
-     * @returns {{
+     * @returns { Promise<{
      *  "code": number
      *  "msg": string
-     *  "data": [{
+     *  "data": {
      *    "configDetails": [{
      *      "configId": number
      *      "poolUsername": string
@@ -2746,8 +2756,8 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
      *    }]
      *    "totalNum": number
      *    "pageSize": number
-     *  }]
-     * }} Response object containing hashrate resale list
+     *  }
+     * }>} Response object containing hashrate resale list
      */
     list: payload => privCall('/sapi/v1/mining/hash-transfer/config/details/list', payload),
     /**
@@ -2764,7 +2774,7 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
      *  pageSize?: number
      *  recvWindow?: number
      * }} payload
-     * @returns {{
+     * @returns { Promise<{
      *  "code": number
      *  "msg": string
      *  "data": [{
@@ -2780,7 +2790,7 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
      *    "totalNum": number
      *    "pageSize": number
      *  }]
-     * }} Response object containing hashrate resale details
+     * }>} Response object containing hashrate resale details
      */
     detail: payload =>
       checkParams('authenticated.spot.mining.hashrateResale.detail', payload, [ 'configId', 'userName' ]) &&
@@ -2803,11 +2813,11 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
      *  pageSize?: number
      *  recvWindow?: number
      * }} payload
-     * @returns {{
+     * @returns { Promise<{
      *  "code": number
      *  "msg": string
      *  "data": number
-     * }} Response object
+     * }>} Response object
      */
     request: payload =>
       checkParams('authenticated.spot.mining.hashrateResale.request', payload, [ 'userName', 'algo', 'endDate', 'startDate', 'toPoolUser', 'hashRate' ]) &&
@@ -2824,11 +2834,11 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
      *  userName: string
      *  recvWindow?: number
      * }} payload
-     * @returns {{
+     * @returns { Promise<{
      *  "code": number
      *  "msg": string
      *  "data": boolean
-     * }} Response object
+     * }>} Response object
      */
     cancelConfiguration: payload =>
       checkParams('authenticated.spot.mining.hashrateResale.cancelConfiguration', payload, [ 'configId', 'userName' ]) &&
@@ -2846,7 +2856,7 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
    *  userName: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "code": number
    *  "msg": string
    *  "data": {
@@ -2860,7 +2870,7 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
    *    "unit": string
    *    "algo": string
    *  }
-   * }} Response object containing static list
+   * }>} Response object containing static list
    */
   staticList: payload =>
     checkParams('authenticated.spot.mining.staticList', payload, [ 'algo', 'userName' ]) &&
@@ -2877,7 +2887,7 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
    *  userName: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "code": number
    *  "msg": string
    *  "data": {
@@ -2889,7 +2899,7 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
    *      "reject": string
    *    }]
    *  }
-   * }} Response object containing account list
+   * }>} Response object containing account list
    */
   accountList: payload =>
     checkParams('authenticated.spot.mining.accountList', payload, [ 'algo', 'userName' ]) &&
@@ -2916,11 +2926,11 @@ export const authenticatedSpotFutures = (privCall) => ({
    *  type: 1 | 2 | 3 | 4
    *  recvWindow?: number
    * }} payload
-   * @returns {{ "tranId": number }} Object containing transaction ID
+   * @returns { Promise<number> } tranId
    */
   transfer: payload =>
     checkParams('authenticated.spot.futures.transfer', payload, [ 'asset', 'amount', 'type' ]) &&
-    privCall('/sapi/v1/futures/transfer', payload, 'POST'),
+    privCall('/sapi/v1/futures/transfer', payload, 'POST').then(r => r.tranId),
   /**
    * Get futures account transaction history list.
    * @weight 10
@@ -2936,7 +2946,7 @@ export const authenticatedSpotFutures = (privCall) => ({
    *  size?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "rows": [{
    *    "asset": string
    *    "tranId": number
@@ -2946,7 +2956,7 @@ export const authenticatedSpotFutures = (privCall) => ({
    *    "status": 'PENDING' | 'CONFIRMED' | 'FAILED'
    *  }]
    *  "total": number
-   * }} Object containing transaction history list
+   * }>} Object containing transaction history list
    */
   transactionHistoryList: payload =>
     checkParams('authenticated.spot.futures.transactionHistoryList', payload, [ 'asset', 'startTime' ]) &&
@@ -2966,14 +2976,14 @@ export const authenticatedSpotFutures = (privCall) => ({
    *  collateralAmount?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "coin": string
    *  "amount": string
    *  "collateralCoin": string
    *  "collateralAmount": string
    *  "time": number
    *  "borrowId": string
-   * }} Object containing borrow result
+   * }>} Object containing borrow result
    */
   crossCollateralBorrow: payload =>
     checkParams('authenticated.spot.futures.crossCollateralBorrow', payload, [ 'coin', 'collateralCoin' ]) &&
@@ -2992,7 +3002,7 @@ export const authenticatedSpotFutures = (privCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "rows": [{
    *    "confirmedTime": number
    *    "coin": string
@@ -3006,7 +3016,7 @@ export const authenticatedSpotFutures = (privCall) => ({
    *    "borrowId": string
    *  }]
    *  "total": number
-   * }} Object containing borrow history list
+   * }>} Object containing borrow history list
    */
   crossCollateralBorrowHistory: payload => privCall('/sapi/v1/futures/loan/borrow/history', payload),
   /**
@@ -3022,12 +3032,12 @@ export const authenticatedSpotFutures = (privCall) => ({
    *  amount: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "coin": string
    *  "amount": string
    *  "collateralCoin": string
    *  "repayId": string
-   * }} Object containing repayment status
+   * }>} Object containing repayment status
    */
   crossCollateralRepay: payload =>
     checkParams('authenticated.spot.futures.crossCollateralRepay', payload, [ 'coin', 'collateralCoin', 'amount' ]) &&
@@ -3046,7 +3056,7 @@ export const authenticatedSpotFutures = (privCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "rows": [{
    *    "coin": string
    *    "amount": string
@@ -3061,7 +3071,7 @@ export const authenticatedSpotFutures = (privCall) => ({
    *    "repayId": string
    *  }]
    *  "total": number
-   * }} Object containing repayment history list
+   * }>} Object containing repayment history list
    */
   crossCollateralRepayHistory: payload => privCall('/sapi/v1/futures/loan/repay/history', payload),
   /**
@@ -3072,7 +3082,7 @@ export const authenticatedSpotFutures = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{ recvWindow?: number }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "totalCrossCollateral": string
    *  "totalBorrowed": string
    *  "totalInterest": string
@@ -3087,7 +3097,7 @@ export const authenticatedSpotFutures = (privCall) => ({
    *    "principalForInterest": string
    *    "interest": string
    *  }]
-   * }} Object containing cross-collateral wallet
+   * }>} Object containing cross-collateral wallet
    */
   crossCollateralWallet: payload => privCall('/sapi/v1/futures/loan/wallet', payload),
   /**
@@ -3098,7 +3108,7 @@ export const authenticatedSpotFutures = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{ recvWindow?: number }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "totalCrossCollateral": string
    *  "totalBorrowed": string
    *  "totalInterest": string
@@ -3114,7 +3124,7 @@ export const authenticatedSpotFutures = (privCall) => ({
    *    "principalForInterest": string
    *    "interest": string
    *  }]
-   * }} Object containing cross-collateral wallet V2
+   * }>} Object containing cross-collateral wallet V2
    */
   crossCollateralWalletV2: payload => privCall('/sapi/v2/futures/loan/wallet', payload),
   /**
@@ -3130,15 +3140,16 @@ export const authenticatedSpotFutures = (privCall) => ({
    *  collateralCoin?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "collateralCoin": string
    *  "rate": string
    *  "marginCallCollateralRate": string
    *  "liquidationCollateralRate": string
    *  "currentCollateralRate": string
-   *  "interestRate": string
+   *  "interestRate"?: string
    *  "interestGracePeriod": string
-   * }]} Array of cross-collateral information objects
+   *  "loanCoin": string
+   * }]>} Array of cross-collateral information objects
    */
   crossCollateralInformation: payload => privCall('/sapi/v1/futures/loan/configs', payload),
   /**
@@ -3155,16 +3166,16 @@ export const authenticatedSpotFutures = (privCall) => ({
    *  collateralCoin?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "loanCoin": string
    *  "collateralCoin": string
    *  "rate": string
    *  "marginCallCollateralRate": string
    *  "liquidationCollateralRate": string
    *  "currentCollateralRate": string
-   *  "interestRate": string
+   *  "interestRate"?: string
    *  "interestGracePeriod": string
-   * }]} Array of cross-collateral information V2 objects
+   * }]>} Array of cross-collateral information V2 objects
    */
   crossCollateralInformationV2: payload => privCall('/sapi/v2/futures/loan/configs', payload),
   /**
@@ -3180,11 +3191,11 @@ export const authenticatedSpotFutures = (privCall) => ({
    *  direction: 'ADDITIONAL' | 'REDUCED'
    *  recvWindow?: number
    * }} payload
-   * @returns {{ "afterCollateralRate": string }} Object containing afterCollateralRate
+   * @returns { Promise<string> } afterCollateralRate
    */
   crossCollateralCalculateRateAfterAdjust: payload =>
     checkParams('authenticated.spot.futures.crossCollateralCalculateRateAfterAdjust', payload, [ 'collateralCoin', 'amount', 'direction' ]) &&
-    privCall('/sapi/v1/futures/loan/calcAdjustLevel', payload),
+    privCall('/sapi/v1/futures/loan/calcAdjustLevel', payload).then(r => r.afterCollateralRate),
   /**
    * Calculate rate after adjust cross-collateral LTV V2.
    * @weight 1
@@ -3199,11 +3210,11 @@ export const authenticatedSpotFutures = (privCall) => ({
    *  direction: 'ADDITIONAL' | 'REDUCED'
    *  recvWindow?: number
    * }} payload
-   * @returns {{ "afterCollateralRate": string }} Object containing afterCollateralRate
+   * @returns { Promise<string> } afterCollateralRate
    */
   crossCollateralCalculateRateAfterAdjustV2: payload =>
     checkParams('authenticated.spot.futures.crossCollateralCalculateRateAfterAdjustV2', payload, [ 'loanCoin', 'collateralCoin', 'amount', 'direction' ]) &&
-    privCall('/sapi/v2/futures/loan/calcAdjustLevel', payload),
+    privCall('/sapi/v2/futures/loan/calcAdjustLevel', payload).then(r => r.afterCollateralRate),
   /**
    * Get max amount for adjust cross-collateral LTV.
    * @weight 50
@@ -3215,10 +3226,10 @@ export const authenticatedSpotFutures = (privCall) => ({
    *  collateralCoin: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "maxInAmount": string
    *  "maxOutAmount": string
-   * }} Response object
+   * }>} Response object
    */
   crossCollateralMaxAdjustAmount: payload =>
     checkParams('authenticated.spot.futures.crossCollateralMaxAdjustAmount', payload, [ 'collateralCoin' ]) &&
@@ -3235,10 +3246,10 @@ export const authenticatedSpotFutures = (privCall) => ({
    *  collateralCoin: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "maxInAmount": string
    *  "maxOutAmount": string
-   * }} Response object
+   * }>} Response object
    */
   crossCollateralMaxAdjustAmountV2: payload =>
     checkParams('authenticated.spot.futures.crossCollateralMaxAdjustAmountV2', payload, [ 'loanCoin', 'collateralCoin' ]) &&
@@ -3257,12 +3268,12 @@ export const authenticatedSpotFutures = (privCall) => ({
    *  direction: 'ADDITIONAL' | 'REDUCED'
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "collateralCoin": string
    *  "direction": 'ADDITIONAL' | 'REDUCED'
    *  "amount": string
    *  "time": number
-   * }} Response object
+   * }>} Response object
    */
   adjustCrossCollateral: payload =>
     checkParams('authenticated.spot.futures.adjustCrossCollateral', payload, [ 'collateralCoin', 'amount', 'direction' ]) &&
@@ -3282,13 +3293,13 @@ export const authenticatedSpotFutures = (privCall) => ({
    *  direction: 'ADDITIONAL' | 'REDUCED'
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "loanCoin": string
    *  "collateralCoin": string
    *  "direction": 'ADDITIONAL' | 'REDUCED'
    *  "amount": string
    *  "time": number
-   * }} Response object
+   * }>} Response object
    */
   adjustCrossCollateralV2: payload =>
     checkParams('authenticated.spot.futures.adjustCrossCollateralV2', payload, [ 'loanCoin', 'collateralCoin', 'amount', 'direction' ]) &&
@@ -3310,7 +3321,7 @@ export const authenticatedSpotFutures = (privCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "rows": [{
    *    "amount": string
    *    "collateralCoin": string
@@ -3318,11 +3329,11 @@ export const authenticatedSpotFutures = (privCall) => ({
    *    "preCollateralRate": string
    *    "afterCollateralRate": string
    *    "direction": 'ADDITIONAL' | 'REDUCED'
-   *    "status": string TODO: Enum not mentioned in official documentation
+   *    "status": string
    *    "adjustTime": number
    *  }]
    *  "total": number
-   * }} Object containing adjust cross-collateral LTV history list
+   * }>} Object containing adjust cross-collateral LTV history list
    */
   adjustCrossCollateralHistory: payload => privCall('/sapi/v1/futures/loan/adjustCollateral/history', payload),
   /**
@@ -3340,15 +3351,18 @@ export const authenticatedSpotFutures = (privCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {{
-   *  "collateralAmountForLiquidation": string
-   *  "collateralCoin": string
-   *  "forceLiquidationStartTime": number
-   *  "coin": string
-   *  "restCollateralAmountAfterLiquidation": string
-   *  "restLoanAmount": string
-   *  "status": 'PENDING' | 'CONFIRMED' | 'FAILED'
-   * }} Object containing cross-collateral liquidation history list
+   * @returns { Promise<{
+   *  "rows": [{
+   *    "collateralAmountForLiquidation": string
+   *    "collateralCoin": string
+   *    "forceLiquidationStartTime": number
+   *    "coin": string
+   *    "restCollateralAmountAfterLiquidation": string
+   *    "restLoanAmount": string
+   *    "status": 'PENDING' | 'CONFIRMED' | 'FAILED'
+   *  }]
+   *  "total": number
+   * }>} Object containing cross-collateral liquidation history list
    */
   crossCollateralLiquidationHistory: payload => privCall('/sapi/v1/futures/loan/liquidationHistory', payload),
   /**
@@ -3363,12 +3377,12 @@ export const authenticatedSpotFutures = (privCall) => ({
    *  collateralCoin: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "coin": string
    *  "collateralCoin": string
    *  "max": string
    *  "min": string
-   * }} Object containing collateral repay limit
+   * }>} Object containing collateral repay limit
    */
   collateralRepayLimit: payload =>
     checkParams('authenticated.spot.futures.collateralRepayLimit', payload, [ 'coin', 'collateralCoin' ]) &&
@@ -3386,12 +3400,12 @@ export const authenticatedSpotFutures = (privCall) => ({
    *  amount: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "coin": string
    *  "collateralCoin": string
    *  "amount": string
    *  "quoteId": string
-   * }} Object containing collateral repay quote.
+   * }>} Object containing collateral repay quote.
    */
   getCollateralRepayQuote: payload =>
     checkParams('authenticated.spot.futures.getCollateralRepayQuote', payload, [ 'coin', 'collateralCoin', 'amount' ]) &&
@@ -3407,12 +3421,12 @@ export const authenticatedSpotFutures = (privCall) => ({
    *  quoteId: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "coin": string
    *  "collateralCoin": string
    *  "amount": string
    *  "quoteId": string
-   * }} Object containing collateral repay receipt
+   * }>} Object containing collateral repay receipt
    */
   collateralRepay: payload =>
     checkParams('authenticated.spot.futures.collateralRepay', payload, [ 'quoteId' ]) &&
@@ -3428,10 +3442,10 @@ export const authenticatedSpotFutures = (privCall) => ({
    *  quoteId: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "quoteId": string
    *  "status": string
-   * }} Object containing collateral repayment result
+   * }>} Object containing collateral repayment result
    */
   collateralRepaymentResult: payload =>
     checkParams('authenticated.spot.futures.collateralRepaymentResult', payload, [ 'quoteId' ]) &&
@@ -3451,7 +3465,7 @@ export const authenticatedSpotFutures = (privCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "rows": [{
    *    "collateralCoin": string
    *    "interestCoin": string
@@ -3462,7 +3476,7 @@ export const authenticatedSpotFutures = (privCall) => ({
    *    "time": number
    *  }]
    *  "total": number
-   * }} Object containing cross-collateral interest history list
+   * }>} Object containing cross-collateral interest history list
    */
   crossCollateralInterestHistory: payload => privCall('/sapi/v1/futures/loan/interestHistory', payload)
 })
@@ -3482,7 +3496,7 @@ export const authenticatedSpotBLVT = (privCall, kCall) => ({
    * @see https://binance-docs.github.io/apidocs/spot/en/#get-blvt-info-market_data
    * @requires APIKEY
    * @param {{ tokenName?: string }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "tokenName": string
    *  "description": string
    *  "underlying": string
@@ -3502,7 +3516,7 @@ export const authenticatedSpotBLVT = (privCall, kCall) => ({
    *  "redeemFeePct": string
    *  "dailyRedeemLimit": string
    *  "timestamp": number
-   * }]} Array of token info objects
+   * }]>} Array of token info objects
    */
   info: payload => kCall('/sapi/v1/blvt/tokenInfo', payload),
   /**
@@ -3517,14 +3531,14 @@ export const authenticatedSpotBLVT = (privCall, kCall) => ({
    *  cost: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "id": number
    *  "status": string
    *  "tokenName": string
    *  "amount": string
    *  "cost": string
    *  "timestamp": number
-   * }} Object containing BLVT subscription
+   * }>} Object containing BLVT subscription
    */
   subscribe: payload =>
     checkParams('authenticated.spot.BLVT.subscribe', payload, [ 'tokenName', 'cost' ]) &&
@@ -3544,7 +3558,7 @@ export const authenticatedSpotBLVT = (privCall, kCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "id": number
    *  "tokenName": string
    *  "amount": number
@@ -3552,7 +3566,7 @@ export const authenticatedSpotBLVT = (privCall, kCall) => ({
    *  "fee": string
    *  "totalCharge": string
    *  "timestamp": number
-   * }]} Array of subscription records
+   * }]>} Array of subscription records
    */
   getSubscriptionRecord: payload => privCall('/sapi/v1/blvt/subscribe/record', payload),
   /**
@@ -3567,14 +3581,14 @@ export const authenticatedSpotBLVT = (privCall, kCall) => ({
    *  amount: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "id": number
    *  "status": 'S' | 'P' | 'F'
    *  "tokenName": string
    *  "redeemAmount": string
    *  "amount": string
    *  "timestamp": number
-   * }} Object containing redeem BLVT
+   * }>} Object containing redeem BLVT
    */
   redeem: payload =>
     checkParams('authenticated.spot.BLVT.redeem', payload, [ 'tokenName', 'amount' ]) &&
@@ -3594,7 +3608,7 @@ export const authenticatedSpotBLVT = (privCall, kCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "id": number
    *  "tokenName": string
    *  "amount": number
@@ -3602,7 +3616,7 @@ export const authenticatedSpotBLVT = (privCall, kCall) => ({
    *  "fee": string
    *  "netProceed": string
    *  "timestamp": number
-   * }]} Array of redemption records
+   * }]>} Array of redemption records
    */
   getRedemptionRecord: payload => privCall('/sapi/v1/blvt/redeem/record', payload),
   /**
@@ -3616,11 +3630,11 @@ export const authenticatedSpotBLVT = (privCall, kCall) => ({
    *  tokenName?: string
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "tokenName": string
    *  "userDailyTotalPurchaseLimit": string
    *  "userDailyTotalRedeemLimit": string
-   * }]} Array of BLVT user limit info objects
+   * }]>} Array of BLVT user limit info objects
    */
   userLimit: payload => privCall('/sapi/v1/blvt/userLimit', payload),
 })
@@ -3639,13 +3653,13 @@ export const authenticatedSpotBSwap = (privCall, kCall) => ({
    * @http GET
    * @see https://binance-docs.github.io/apidocs/spot/en/#list-all-swap-pools-market_data
    * @requires APIKEY
-   * @returns {[{
+   * @returns { Promise<[{
    *  "poolId": number
    *  "poolName": string
    *  "assets": [ string, string ]
-   * }]} Array of swap pool metadata objects
+   * }]>} Array of swap pool metadata objects
    */
-  getPools: payload => kCall('/sapi/v1/bswap/pools', payload),
+  getPools: () => kCall('/sapi/v1/bswap/pools'),
   /**
    * Get liquidity information and user share of a pool.
    * @weight 1 for one pool, 10 when the poolId parameter is omitted
@@ -3657,7 +3671,7 @@ export const authenticatedSpotBSwap = (privCall, kCall) => ({
    *  poolId?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "poolId": number
    *  "poolName": string
    *  "updateTime": number
@@ -3671,7 +3685,7 @@ export const authenticatedSpotBSwap = (privCall, kCall) => ({
    *      [ key: string ]: number
    *    }
    *  }
-   * }]} Array of swap pool metadata objects
+   * }]>} Array of swap pool metadata objects
    */
   getLiquidity: payload => privCall('/sapi/v1/bswap/liquidity', payload),
   /**
@@ -3688,11 +3702,11 @@ export const authenticatedSpotBSwap = (privCall, kCall) => ({
    *  quantity: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{ "operationId": number }} Object containing operationId
+   * @returns { Promise<number> } operationId
    */
   addLiquidity: payload =>
     checkParams('authenticated.spot.BSWap.addLiquidity', payload, [ 'poolId', 'asset', 'quantity' ]) &&
-    privCall('/sapi/v1/bswap/liquidityAdd', payload, 'POST'),
+    privCall('/sapi/v1/bswap/liquidityAdd', payload, 'POST').then(r => r.operationId),
   /**
    * Remove liquidity from a pool, `type` includes `SINGLE` and `COMBINATION`, asset is mandatory for single asset removal.
    * @weight 1000 (Additional: 3 times one second)
@@ -3707,11 +3721,11 @@ export const authenticatedSpotBSwap = (privCall, kCall) => ({
    *  shareAmount: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{ "operationId": number }} Object containing operationId
+   * @returns { Promise<number> } operationId
    */
   removeLiquidity: payload =>
     checkParams('authenticated.spot.BSWap.removeLiquidity', payload, [ 'poolId', 'type', 'shareAmount' ]) &&
-    privCall('/sapi/v1/bswap/liquidityRemove', payload, 'POST'),
+    privCall('/sapi/v1/bswap/liquidityRemove', payload, 'POST').then(r => r.operationId),
   /**
    * Get liquidity operation (add/remove) records.
    * @weight 3000
@@ -3728,7 +3742,7 @@ export const authenticatedSpotBSwap = (privCall, kCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {[{
+   * @returns { Promise<[{
    *  "operationId": number
    *  "poolId": number
    *  "poolName": string
@@ -3736,7 +3750,7 @@ export const authenticatedSpotBSwap = (privCall, kCall) => ({
    *  "status": 0 | 1 | 2
    *  "updateTime": number
    *  "shareAmount": string
-   * }]} Array of liquidity operation record objects
+   * }]>} Array of liquidity operation record objects
    */
   getLiquidityOperationRecords: payload => privCall('/sapi/v1/bswap/liquidityOps', payload),
   /**
@@ -3757,7 +3771,7 @@ export const authenticatedSpotBSwap = (privCall, kCall) => ({
    *  quoteQty: string
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "quoteAsset": string
    *  "baseAsset": string
    *  "quoteQty": number
@@ -3765,7 +3779,7 @@ export const authenticatedSpotBSwap = (privCall, kCall) => ({
    *  "price": number
    *  "slippage": number
    *  "fee": number
-   * }} Object containing quote
+   * }>} Object containing quote
    */
   requestQuote: payload =>
     checkParams('authenticated.spot.BSWap.requestQuote', payload, [ 'quoteAsset', 'baseAsset', 'quoteQty' ]) &&
@@ -3783,11 +3797,11 @@ export const authenticatedSpotBSwap = (privCall, kCall) => ({
    *  quoteQty: string
    *  recvWindow?: number
    * }} payload 
-   * @returns {{ "swapID": number }} Object containing swapID
+   * @returns { Promise<number> } swapID
    */
   swap: payload =>
     checkParams('authenticated.spot.BSWap.swap', payload, [ 'quoteAsset', 'baseAsset', 'quoteQty' ]) &&
-    privCall('/sapi/v1/bswap/swap', payload, 'POST'),
+    privCall('/sapi/v1/bswap/swap', payload, 'POST').then(r => r.swapID),
   /**
    * Get swap history.
    * @weight 3000
@@ -3805,7 +3819,7 @@ export const authenticatedSpotBSwap = (privCall, kCall) => ({
    *  limit?: number
    *  recvWindow?: number
    * }} payload 
-   * @returns {[{
+   * @returns { Promise<[{
    *  "swapID": number
    *  "swapTime": number
    *  "status": number
@@ -3815,7 +3829,7 @@ export const authenticatedSpotBSwap = (privCall, kCall) => ({
    *  "baseQty": number
    *  "price": number
    *  "fee": number
-   * }]} Array of swap objects
+   * }]>} Array of swap objects
    */
   swapHistory: payload => privCall('/sapi/v1/bswap/swap', payload),
   /**
@@ -3829,7 +3843,7 @@ export const authenticatedSpotBSwap = (privCall, kCall) => ({
    *  poolId?: number
    *  recvWindow?: number
    * }} payload 
-   * @returns {[{
+   * @returns { Promise<[{
    *  "poolId": number
    *  "poolName": string
    *  "updateTime": number
@@ -3852,7 +3866,7 @@ export const authenticatedSpotBSwap = (privCall, kCall) => ({
    *      "maxSwap": number
    *    }
    *  }
-   * }]} Object containing pool configuration
+   * }]>} Array containing pool configuration
    */
   getPoolConfigure: payload => privCall('/sapi/v1/bswap/poolConfigure', payload),
   /**
@@ -3869,7 +3883,7 @@ export const authenticatedSpotBSwap = (privCall, kCall) => ({
    *  quoteQty: string
    *  recvWindow?: number
    * }} payload 
-   * @returns {{
+   * @returns { Promise<{
    *  "quoteAsset": string
    *  "baseAsset": string
    *  "quoteAmt": number
@@ -3878,7 +3892,7 @@ export const authenticatedSpotBSwap = (privCall, kCall) => ({
    *  "share": number
    *  "slippage": number
    *  "fee": number
-   * }} Object containing liquidity preview
+   * }>} Object containing liquidity preview
    */
   addLiquidityPreview: payload =>
     checkParams('authenticated.spot.BSWap.addLiquidityPreview', payload, [ 'poolId', 'type', 'quoteAsset', 'quoteQty' ]) &&
@@ -3897,7 +3911,7 @@ export const authenticatedSpotBSwap = (privCall, kCall) => ({
    *  shareAmount: string
    *  recvWindow?: number
    * }} payload 
-   * @returns {{
+   * @returns { Promise<{
    *  "quoteAsset": string
    *  "baseAsset": string
    *  "quoteAmt": number
@@ -3905,7 +3919,7 @@ export const authenticatedSpotBSwap = (privCall, kCall) => ({
    *  "price": number
    *  "slippage": number
    *  "fee": number
-   * }} Object containing liquidity preview
+   * }>} Object containing liquidity preview
    */
   removeLiquidityPreview: payload =>
     checkParams('authenticated.spot.BSWap.removeLiquidityPreview', payload, [ 'poolId', 'type', 'quoteAsset', 'shareAmount' ]) &&
@@ -3921,7 +3935,7 @@ export const authenticatedSpotBSwap = (privCall, kCall) => ({
 export const authenticatedSpotFiat = (privCall) => ({
   /**
    * Get fiat deposit/withdraw history.
-   * 
+   * - `transactionType`: `'0'` = deposit, `'1'` = withdraw
    * If `beginTime` and `endTime` are not sent, the recent 30-day data will be returned.
    * @weight 1
    * @http GET
@@ -3929,14 +3943,14 @@ export const authenticatedSpotFiat = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{
-   *  transactionType: string
+   *  transactionType: '0' | '1'
    *  beginTime?: number
    *  endTime?: number
    *  page?: number
    *  rows?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "code": string
    *  "message": string
    *  "data": [{
@@ -3953,14 +3967,14 @@ export const authenticatedSpotFiat = (privCall) => ({
    *  }]
    *  "total": number
    *  "success": boolean
-   * }} Object containing fiat deposit/withdraw history
+   * }>} Object containing fiat deposit/withdraw history
    */
   getOrderHistory: payload =>
-    checkParams('authenticated.spot.fiat.getOrderHistory', payload, [ 'transactionType' ]) &&
+    checkParams('authenticated.spot.fiat.getOrderHistory', payload, ['transactionType']) &&
     privCall('/sapi/v1/fiat/orders', payload),
   /**
    * Get fiat payments history.
-   * 
+   * - `transactionType`: `'0'` = buy, `'1'` = sell
    * If `beginTime` and `endTime` are not sent, the recent 30-day data will be returned.
    * @weight 1
    * @http GET
@@ -3975,7 +3989,7 @@ export const authenticatedSpotFiat = (privCall) => ({
    *  rows?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "code": string
    *  "message": string
    *  "data": [{
@@ -3992,10 +4006,10 @@ export const authenticatedSpotFiat = (privCall) => ({
    *  }]
    *  "total": number
    *  "success": boolean
-   * }} Object containing fiat payments history
+   * }>} Object containing fiat payments history
    */
   getPaymentHistory: payload =>
-    checkParams('authenticated.spot.fiat.getPaymentHistory', payload, [ 'transactionType' ]) &&
+    checkParams('authenticated.spot.fiat.getPaymentHistory', payload, ['transactionType']) &&
     privCall('/sapi/v1/fiat/payments', payload),
 })
 
@@ -4023,7 +4037,7 @@ export const authenticatedSpotC2C = (privCall) => ({
    *  rows?: number
    *  recvWindow?: number
    * }} payload
-   * @returns {{
+   * @returns { Promise<{
    *  "code": string
    *  "message": string
    *  "data": [{
@@ -4045,7 +4059,7 @@ export const authenticatedSpotC2C = (privCall) => ({
    *  }]
    *  "total": number
    *  "success": boolean
-   * }} Object containing C2C trade history
+   * }>} Object containing C2C trade history
    */
   getTradeHistory: payload =>
     checkParams('authenticated.spot.C2C.getTradeHistory', payload, ['tradeType']) &&

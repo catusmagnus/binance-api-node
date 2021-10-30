@@ -1,9 +1,12 @@
-import httpMethods from 'http-client'
-import wsMethods from 'websocket'
+// Imports:
+import RESTMethods from './REST'
+import webSocketMethods from './WebSocket'
 
+
+// Exports:
 export default (opts = {}) => ({
-  ...httpMethods(opts),
-  ws: wsMethods(opts),
+  ...RESTMethods(opts),
+  ws: webSocketMethods(opts)
 })
 
 export const ErrorCodes = {
@@ -46,7 +49,7 @@ export const ErrorCodes = {
   CANCEL_ALL_FAIL: -2012,
   NO_SUCH_ORDER: -2013,
   BAD_API_KEY_FMT: -2014,
-  REJECTED_MBX_KEY: -2015,
+  REJECTED_MBX_KEY: -2015
 }
 
 export const CandleChartInterval = {
@@ -64,12 +67,12 @@ export const CandleChartInterval = {
   ONE_DAY: '1d',
   THREE_DAYS: '3d',
   ONE_WEEK: '1w',
-  ONE_MONTH: '1M',
+  ONE_MONTH: '1M'
 }
 
 export const DepositStatus = {
   PENDING: 0,
-  SUCCESS: 1,
+  SUCCESS: 1
 }
 
 export const WithdrawStatus = {
@@ -79,5 +82,5 @@ export const WithdrawStatus = {
   REJECTED: 3,
   PROCESSING: 4,
   FAILURE: 5,
-  COMPLETED: 6,
+  COMPLETED: 6
 }
