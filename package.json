@@ -10,7 +10,7 @@
   "scripts": {
     "build": "rm -rf dist && babel src -d dist",
     "prepare": "yarn build",
-    "test": "ava --timeout=10s -v",
+    "test": "ava --timeout=30s -v",
     "cover": "nyc ava",
     "report": "yarn cover && nyc report --reporter=text-lcov | coveralls",
     "lint": "eslint src"
