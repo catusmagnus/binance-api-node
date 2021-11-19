@@ -32,12 +32,12 @@ test('[REST-SPOT] ping', async t => {
   t.truthy(await client.public.spot.marketData.ping(), 'Pinging spot endpoint should work')
 })
 test('[REST-SPOT] time', async t => {
-  const ts = await client.public.spot.marketData.time()
-  t.truthy(new Date(ts).getTime() > 0, 'The returned spot timestamp should be valid')
+  const time = await client.public.spot.marketData.time()
+  t.truthy(new Date(time).getTime() > 0, 'The returned spot timestamp should be valid')
 })
 test('[REST-SPOT] exchangeInfo', async t => {
-  const res = await client.public.spot.marketData.exchangeInfo()
-  checkFields(t, res, [
+  const exchangeInfo = await client.public.spot.marketData.exchangeInfo()
+  checkFields(t, exchangeInfo, [
     'timezone',
     'serverTime',
     'rateLimits',
@@ -127,9 +127,17 @@ test('[REST-SPOT] avgPrice', async t => {
   checkFields(t, res, [ 'mins', 'price' ])
 })
 test('[REST-SPOT] dailyTickerStats', async t => {
-  const res = await client.public.spot.marketData.dailyTickerStats({ symbol: 'ETHUSDT' })
-  t.truthy(res)
-  checkFields(t, res, [
+  let dailyTickerStats
+  if (Math.random() < 0.5) {
+    dailyTickerStats = await client.public.spot.marketData.dailyTickerStats()
+  } else {
+    dailyTickerStats = await client.public.spot.marketData.dailyTickerStats({ symbol: 'ETHUSDT' })
+  } 
+  let dailyTickerStat = dailyTickerStats
+  if (Array.isArray(dailyTickerStats)) {
+    dailyTickerStat = dailyTickerStats[0]
+  }
+  checkFields(t, dailyTickerStat, [
     'symbol',
     'priceChange',
     'priceChangePercent',
@@ -195,8 +203,9 @@ test('[REST-FUTURES] time', async t => {
   t.truthy(new Date(ts).getTime() > 0, 'The returned futures timestamp should be valid')
 })
 test('[REST-FUTURES] exchangeInfo', async t => {
-  const res = await client.public.futures.marketData.exchangeInfo()
-  checkFields(t, res, [
+  const exchangeInfo = await client.public.futures.marketData.exchangeInfo()
+  console.log(exchangeInfo.symbols[0].filters)
+  checkFields(t, exchangeInfo, [
     'rateLimits',
     'exchangeFilters',
     'serverTime',
@@ -217,6 +226,7 @@ test('[REST-FUTURES] book', async t => {
     t.is(e.message, 'Method book requires symbol parameter.')
   }
   const book = await client.public.futures.marketData.book({ symbol: 'ETHUSDT' })
+  console.log(book)
   t.truthy(book.lastUpdateId)
   t.truthy(book.messageOutputTime)
   t.truthy(book.transactionTime)
@@ -433,8 +443,7 @@ test('[REST-FUTURES] openInterestHistory', async t => {
     t.is(e.message, 'Method public.futures.marketData.openInterestHistory requires symbol parameter.')
   }
   const openInterestHistory = await client.public.futures.marketData.openInterestHistory({ symbol: 'ETHUSDT' })
-  t.truthy(Array.isArray(openInterestHistory))
-  checkFields(t, openInterestHistory[0], [
+  checkFields(t, openInterestHistory[ Object.keys(openInterestHistory)[0] ], [
     'symbol',
     'sumOpenInterest',
     'sumOpenInterestValue',
@@ -448,8 +457,7 @@ test('[REST-FUTURES] topLongShortPositionRatio', async t => {
     t.is(e.message, 'Method public.futures.marketData.topLongShortPositionRatio requires symbol parameter.')
   }
   const topLongShortPositionRatio = await client.public.futures.marketData.topLongShortPositionRatio({ symbol: 'ETHUSDT' })
-  t.truthy(Array.isArray(topLongShortPositionRatio))
-  checkFields(t, topLongShortPositionRatio[0], [
+  checkFields(t, topLongShortPositionRatio[ Object.keys(openInterestHistory)[0] ], [
     'symbol',
     'longShortRatio',
     'longAccount',
@@ -464,8 +472,7 @@ test('[REST-FUTURES] longShortRatio', async t => {
     t.is(e.message, 'Method public.futures.marketData.longShortRatio requires symbol parameter.')
   }
   const longShortRatio = await client.public.futures.marketData.longShortRatio({ symbol: 'ETHUSDT' })
-  t.truthy(Array.isArray(longShortRatio))
-  checkFields(t, longShortRatio[0], [
+  checkFields(t, longShortRatio[ Object.keys(openInterestHistory)[0] ], [
     'symbol',
     'longShortRatio',
     'longAccount',

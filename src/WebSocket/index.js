@@ -399,6 +399,9 @@ export const allMarkPrices = (payload, cb, transform = true) => {
 export const continuousKlines = (payload, interval, cb, transform = true) => {
   if (!interval || !cb) throw new Error('Please pass a pair, contractType, interval and a callback.')
   const cache = (Array.isArray(payload) ? payload : [ payload ]).map(({ pair, contractType }) => {
+    if (![ 'perpetual', 'current_quarter', 'next_quarter' ].includes(contractType)) {
+      throw new Error('Please pass a valid contractType.')
+    }
     const w = openWebSocket(
       `${ endpoints.futures }/${ pair.toLowerCase() }_${ contractType }@continuousKline_${ interval }`
     )

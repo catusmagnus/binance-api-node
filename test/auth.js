@@ -174,9 +174,9 @@ const main = ({
     t.true(universalTransferHistory.total === universalTransferHistory.rows.length)
     t.pass()
   })
-  test('[REST-SPOT-WALLET] apiPermission', async t => {
-    const apiPermission = await client.authenticated.spot.wallet.apiPermission()
-    checkFields(t, apiPermission, [
+  test('[REST-SPOT-WALLET] APIPermission', async t => {
+    const APIPermission = await client.authenticated.spot.wallet.APIPermission()
+    checkFields(t, APIPermission, [
       'ipRestrict',
       'createTime',
       'enableWithdrawals',

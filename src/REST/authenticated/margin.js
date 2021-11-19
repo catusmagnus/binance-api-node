@@ -84,7 +84,6 @@ export const authenticatedMarginCross = (privCall, kCall) => ({
    * @requires APIKEY
    * @param {{
    *  symbol: string
-   *  recvWindow?: number
    * }} payload
    * @returns { Promise<{
    *  "id": number
@@ -111,7 +110,7 @@ export const authenticatedMarginCross = (privCall, kCall) => ({
    *    "id": number
    *    "isBuyAllowed": boolean
    *    "isMarginTrade": boolean
-   *    "isSellAllowed": boolean"
+   *    "isSellAllowed": boolean
    *    "quote": string
    *    "symbol": string
    *  }
@@ -139,7 +138,7 @@ export const authenticatedMarginCross = (privCall, kCall) => ({
    *  size?: number
    *  archived?: boolean
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<{
    *  "rows": [{
    *    "amount": string
@@ -160,7 +159,7 @@ export const authenticatedMarginCross = (privCall, kCall) => ({
    * @see https://binance-docs.github.io/apidocs/spot/en/#query-cross-margin-account-details-user_data
    * @requires APIKEY
    * @requires APISECRET
-   * @param {{ recvWindow?: number }} payload
+   * @param {{ recvWindow: number }=} payload
    * @returns { Promise<{
    *  "borrowEnabled": boolean
    *  "marginLevel": string
@@ -299,7 +298,7 @@ export const authenticatedMarginIsolated = (privCall) => ({
    * @param {{
    *  symbols?: string
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<{
    *  "assets": [{
    *    "baseAsset": [{
@@ -387,7 +386,7 @@ export const authenticatedMarginIsolated = (privCall) => ({
    * @see https://binance-docs.github.io/apidocs/spot/en/#query-enabled-isolated-margin-account-limit-user_data
    * @requires APIKEY
    * @requires APISECRET
-   * @param {{ recvWindow?: number }} payload
+   * @param {{ recvWindow: number }=} payload
    * @returns { Promise<{
    *  "enabledAccount": number
    *  "maxAccount": number
@@ -424,7 +423,7 @@ export const authenticatedMarginIsolated = (privCall) => ({
    * @see https://binance-docs.github.io/apidocs/spot/en/#get-all-isolated-margin-symbol-user_data
    * @requires APIKEY
    * @requires APISECRET
-   * @param {{ recvWindow?: number }} payload
+   * @param {{ recvWindow: number }=} payload
    * @returns { Promise<{
    *  [ symbol: string ]: {
    *    "base": string
@@ -580,13 +579,12 @@ export const authenticatedMarginOCO = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{
-   *  symbol: string
    *  isIsolated?: 'TRUE' | 'FALSE'
+   *  symbol?: string
    *  orderListId?: number
-   *  listClientOrderId: string
-   *  newClientOrderId: string
+   *  origClientOrderId: string
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<{
    *  "orderListId": number
    *  "contingencyType": string
@@ -615,11 +613,11 @@ export const authenticatedMarginOCO = (privCall) => ({
    *  isIsolated?: 'TRUE' | 'FALSE'
    *  symbol?: string
    *  fromId?: number
-   *  startTime: number
-   *  endTime: number
-   *  limit: number
+   *  startTime?: number
+   *  endTime?: number
+   *  limit?: number
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<[{
    *  "orderListId": number
    *  "contingencyType": string
@@ -648,7 +646,7 @@ export const authenticatedMarginOCO = (privCall) => ({
    *  isIsolated?: 'TRUE' | 'FALSE'
    *  symbol?: string
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<[{
    *  "orderListId": number
    *  "contingencyType": string
@@ -726,7 +724,6 @@ const authenticatedMargin = (privCall, kCall) => ({
    * @requires APIKEY
    * @param {{
    *  asset: string
-   *  recvWindow?: number
    * }} payload
    * @returns { Promise<{
    *  "assetFullName": string
@@ -764,7 +761,6 @@ const authenticatedMargin = (privCall, kCall) => ({
    * @requires APIKEY
    * @param {{
    *  symbol: string
-   *  recvWindow?: number
    * }} payload
    * @returns { Promise<{
    *  "calcTime": number
@@ -867,7 +863,6 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  "orderId": number
    *  "origClientOrderId": string
    *  "clientOrderId": string
-   *  "transactTime": number
    *  "price": string
    *  "origQty": string
    *  "executedQty": string
@@ -1017,7 +1012,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  size?: number
    *  archived?: boolean
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<{
    *  "rows": [{
    *    "isolatedSymbol": string
@@ -1048,7 +1043,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    *  size?: number
    *  archived?: boolean
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<{
    *  "rows": [{
    *    "avgPrice": string
@@ -1117,12 +1112,10 @@ const authenticatedMargin = (privCall, kCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{
-   *  symbol: string
+   *  symbol?: string
    *  isIsolated?: 'TRUE' | 'FALSE'
-   *  orderId?: number
-   *  origClientOrderId?: string
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<[{
    *  "clientOrderId": string
    *  "cummulativeQuoteQty": string
@@ -1288,7 +1281,7 @@ const authenticatedMargin = (privCall, kCall) => ({
    * @see https://binance-docs.github.io/apidocs/spot/en/#get-bnb-burn-status-user_data
    * @requires APIKEY
    * @requires APISECRET
-   * @param {{ recvWindow?: number }} payload
+   * @param {{ recvWindow: number }=} payload
    * @returns { Promise<{
    *  "spotBNBBurn": boolean
    *  "interestBNBBurn": boolean

@@ -1,6 +1,6 @@
 {
   "name": "binance-api-node",
-  "version": "0.11.22",
+  "version": "1.0.0",
   "description": "A node API wrapper for Binance",
   "main": "dist",
   "files": [
@@ -10,7 +10,7 @@
   "scripts": {
     "build": "rm -rf dist && babel src -d dist",
     "prepare": "yarn build",
-    "test": "ava --timeout=30s -v",
+    "test": "ava --timeout=30s -v --match=\"[REST-FUTURES] exchangeInfo\"",
     "cover": "nyc ava",
     "report": "yarn cover && nyc report --reporter=text-lcov | coveralls",
     "lint": "eslint src"

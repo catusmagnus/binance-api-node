@@ -45,7 +45,7 @@ export const authenticatedFuturesMarketData = (kCall) => ({
    * - Only the data of the latest 30 days is available.
    * @weight 1
    * @http GET
-   * @see https://binance-docs.github.io/apidocs/futures/en/#top-trader-long-short-ratio-accounts-market_data
+   * @see https://binance-docs.github.io/apidocs/futures/en/#top-trader-long-short-ratio-accounts
    * @requires APIKEY
    * @param {{
    *  symbol: string
@@ -87,7 +87,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    * }} payload
    * @returns { Promise<{
    *  "code": number
-   *  "msg" string
+   *  "msg": string
    * }>} Response object 
    */
   changePositionMode: payload =>
@@ -100,7 +100,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    * @see https://binance-docs.github.io/apidocs/futures/en/#get-current-position-mode-user_data
    * @requires APIKEY
    * @requires APISECRET
-   * @param {{ recvWindow?: number }} payload
+   * @param {{ recvWindow: number }=} payload
    * @returns { Promise<boolean> } Response object 
    */
   positionMode: payload => privCall('/fapi/v1/positionSide/dual', payload).then(r => r.dualSidePosition),
@@ -117,7 +117,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    * }} payload
    * @returns { Promise<{
    *  "code": number
-   *  "msg" string
+   *  "msg": string
    * }>} Response object 
    */
   changeMultiAssetsMode: payload =>
@@ -130,7 +130,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    * @see https://binance-docs.github.io/apidocs/futures/en/#get-current-multi-assets-mode-user_data
    * @requires APIKEY
    * @requires APISECRET
-   * @param {{ recvWindow?: number }} payload
+   * @param {{ recvWindow: number }=} payload
    * @returns { Promise<boolean> } Response object 
    */
   multiAssetsMode: payload => privCall('/fapi/v1/multiAssetsMargin', payload).then(r => r.multiAssetsMargin),
@@ -293,7 +293,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *    "updateTime": number
    *    "workingType": 'MARK_PRICE' | 'CONTRACT_PRICE'
    *    "priceProtect": boolean
-   *  }
+   *  },
    *  {
    *    "code": number
    *    "msg": string
@@ -330,6 +330,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  "orderId": number
    *  "origQty": string
    *  "origType": 'LIMIT' | 'MARKET' | 'STOP' | 'TAKE_PROFIT' | 'STOP_MARKET'
+   *  | 'TAKE_PROFIT_MARKET' | 'TRAILING_STOP_MARKET'
    *  "price": string
    *  "reduceOnly": boolean
    *  "side": 'BUY' | 'SELL'
@@ -375,6 +376,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  "orderId": number
    *  "origQty": string
    *  "origType": 'LIMIT' | 'MARKET' | 'STOP' | 'TAKE_PROFIT' | 'STOP_MARKET'
+   *  | 'TAKE_PROFIT_MARKET' | 'TRAILING_STOP_MARKET'
    *  "price": string
    *  "reduceOnly": boolean
    *  "side": 'BUY' | 'SELL'
@@ -456,7 +458,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *    "updateTime": number
    *    "workingType": 'MARK_PRICE' | 'CONTRACT_PRICE'
    *    "priceProtect": boolean
-   *  }
+   *  },
    *  {
    *    "code": number
    *    "msg": string
@@ -517,6 +519,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  "orderId": number
    *  "origQty": string
    *  "origType": 'LIMIT' | 'MARKET' | 'STOP' | 'TAKE_PROFIT' | 'STOP_MARKET'
+   *  | 'TAKE_PROFIT_MARKET' | 'TRAILING_STOP_MARKET'
    *  "price": string
    *  "reduceOnly": boolean
    *  "side": 'BUY' | 'SELL'
@@ -550,7 +553,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    * @param {{
    *  symbol?: string
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<[{
    *  "avgPrice": string
    *  "clientOrderId":  string
@@ -559,6 +562,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  "orderId": number
    *  "origQty": string
    *  "origType": 'LIMIT' | 'MARKET' | 'STOP' | 'TAKE_PROFIT' | 'STOP_MARKET'
+   *  | 'TAKE_PROFIT_MARKET' | 'TRAILING_STOP_MARKET'
    *  "price": string
    *  "reduceOnly": boolean
    *  "side": 'BUY' | 'SELL'
@@ -609,6 +613,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  "orderId": number
    *  "origQty": string
    *  "origType": 'LIMIT' | 'MARKET' | 'STOP' | 'TAKE_PROFIT' | 'STOP_MARKET'
+   *  | 'TAKE_PROFIT_MARKET' | 'TRAILING_STOP_MARKET'
    *  "price": string
    *  "reduceOnly": boolean
    *  "side": 'BUY' | 'SELL'
@@ -638,10 +643,10 @@ export const authenticatedFuturesTrade = (privCall) => ({
    * @see https://binance-docs.github.io/apidocs/futures/en/#futures-account-balance-v2-user_data
    * @requires APIKEY
    * @requires APISECRET
-   * @param {{ recvWindow?: number }} payload
+   * @param {{ recvWindow: number }=} payload
    * @returns { Promise<[{
    *  "accountAlias": string
-   *  "asset":  string
+   *  "asset": string
    *  "balance": string
    *  "crossWalletBalance": string
    *  "crossUnPnl": string
@@ -659,7 +664,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
    * @requires APIKEY
    * @requires APISECRET
-   * @param {{ recvWindow?: number }} payload
+   * @param {{ recvWindow: number }=} payload
    * @returns { Promise<{
    *  "feeTier": number
    *  "canTrade":  boolean
@@ -815,7 +820,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    * @param {{
    *  symbol?: string
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<[{
    *  "entryPrice": string
    *  "marginType": string
@@ -882,15 +887,14 @@ export const authenticatedFuturesTrade = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{
-   *  symbol: string
+   *  symbol?: string
    *  incomeType?: 'TRANSFER' | 'WELCOME_BONUS' | 'REALIZED_PNL'
    *  | 'FUNDING_FEE' | 'COMMISSION' | 'INSURANCE_CLEAR'
    *  startTime?: number
    *  endTime?: number
-   *  fromId?: number
    *  limit?: number
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<[{
    *  "symbol": string
    *  "incomeType": 'TRANSFER' | 'WELCOME_BONUS' | 'REALIZED_PNL'
@@ -914,7 +918,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    * @param {{
    *  symbol?: string
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<{
    *  [ symbol: string ]: [{
    *    "bracket": number
@@ -947,7 +951,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    * @param {{
    *  symbol?: string
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<{
    *  [ symbol: string ]: {
    *    "LONG": number
@@ -976,7 +980,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    *  endTime?: number
    *  limit?: number
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<[{
    *  "orderId": number
    *  "symbol": string
@@ -1014,7 +1018,7 @@ export const authenticatedFuturesTrade = (privCall) => ({
    * @param {{
    *  symbol?: string
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<{
    *  "indicators": {
    *    [ symbol: string ]: {

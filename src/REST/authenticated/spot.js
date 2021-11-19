@@ -21,7 +21,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    * @see https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
    * @requires APIKEY
    * @requires APISECRET
-   * @param {{ recvWindow?: number }} payload
+   * @param {{ recvWindow: number }=} payload
    * @returns { Promise<[{
    *  "coin": string
    *  "depositAllEnable": boolean
@@ -105,7 +105,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    * @see https://binance-docs.github.io/apidocs/spot/en/#disable-fast-withdraw-switch-user_data
    * @requires APIKEY
    * @requires APISECRET
-   * @param {{ recvWindow?: number }} payload
+   * @param {{ recvWindow: number }=} payload
    * @returns { Promise<{}> } Empty object
    */
   disableFastWithdrawSwitch: payload => privCall('/sapi/v1/account/disableFastWithdrawSwitch', payload, 'POST'),
@@ -120,7 +120,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    * @see https://binance-docs.github.io/apidocs/spot/en/#enable-fast-withdraw-switch-user_data
    * @requires APIKEY
    * @requires APISECRET
-   * @param {{ recvWindow?: number }} payload
+   * @param {{ recvWindow: number }=} payload
    * @returns { Promise<{}> } Empty object
    */
   enableFastWithdrawSwitch: payload => privCall('/sapi/v1/account/enableFastWithdrawSwitch', payload, 'POST'),
@@ -167,7 +167,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    *  offset?: number
    *  limit?: number
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<[{
    *  "amount": string
    *  "coin": string
@@ -202,7 +202,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    *  startTime?: number
    *  endTime?: number
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<[{
    *  "address": string
    *  "amount": string
@@ -215,6 +215,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    *  "status": 0 | 1 | 2 | 3 | 4 | 5 | 6
    *  "transactionFee": string
    *  "confirmNo": number
+   *  "info": string
    *  "txId": string
    * }]>} Array containing withdraw objects
    */
@@ -250,7 +251,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    * @see https://binance-docs.github.io/apidocs/spot/en/#account-status-user_data
    * @requires APIKEY
    * @requires APISECRET
-   * @param {{ recvWindow?: number }} payload
+   * @param {{ recvWindow: number }=} payload
    * @returns { Promise<string> } data
    */
   accountStatus: payload => privCall('/sapi/v1/account/status', payload).then(r => r.data),
@@ -261,7 +262,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    * @see https://binance-docs.github.io/apidocs/spot/en/#account-api-trading-status-user_data
    * @requires APIKEY
    * @requires APISECRET
-   * @param {{ recvWindow?: number }} payload
+   * @param {{ recvWindow: number }=} payload
    * @returns { Promise<{
    *  "data": {
    *    "isLocked": boolean
@@ -273,7 +274,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    *    }
    *    "indicators": {
    *      [ key: string ]: [{
-   *        "i": "UFR"
+   *        "i": 'GCR' | 'IFER' | 'UFR'
    *        "c": number
    *        "v": number
    *        "t": number
@@ -295,9 +296,9 @@ export const authenticatedSpotWallet = (privCall) => ({
    *  startTime?: number
    *  endTime?: number
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<{
-   *  "total": number
+   *  "total"?: number
    *  "userAssetDribblets": [{
    *    "operateTime": number
    *    "totalTransferedAmount": string
@@ -355,7 +356,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    *  endTime?: number
    *  limit?: number
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<{
    *  "rows": [{
    *    "id": number
@@ -381,7 +382,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    * @param {{
    *  asset?: string
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<{
    *  [ key: string ]: {
    *    minWithdrawAmount: string
@@ -403,7 +404,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    * @param {{
    *  symbol?: string
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<{
    *  [ symbol: string ]: {
    *    "makerCommission": string
@@ -524,7 +525,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    *  asset?: string
    *  needBtcValuation?: 'true' | 'false'
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<[{
    *  "asset": string
    *  "free": string
@@ -542,7 +543,7 @@ export const authenticatedSpotWallet = (privCall) => ({
    * @see https://binance-docs.github.io/apidocs/spot/en/#get-api-key-permission-user_data
    * @requires APIKEY
    * @requires APISECRET
-   * @param {{ recvWindow?: number }} payload
+   * @param {{ recvWindow?: number }=} payload
    * @returns { Promise<{
    *  "ipRestrict": boolean
    *  "createTime": number
@@ -557,7 +558,88 @@ export const authenticatedSpotWallet = (privCall) => ({
    *  "tradingAuthorityExpirationTime"?: number
    * }>} Response object
    */
-  apiPermission: payload =>  privCall('/sapi/v1/account/apiRestrictions', payload),
+  APIPermission: payload =>  privCall('/sapi/v1/account/apiRestrictions', payload),
+  /**
+   * Enable or Disable IP Restriction for an API Key.
+   * @weight 3000
+   * @http POST
+   * @see https://binance-docs.github.io/apidocs/spot/en/#enable-or-disable-ip-restriction-for-an-api-key-user_data
+   * @requires APIKEY
+   * @requires APISECRET
+   * @param {{
+   *  accountApiKey: string
+   *  ipRestrict: boolean
+   *  recvWindow?: number
+   * }} payload
+   * @returns { Promise<{
+   *  "ipRestrict": 'true' | 'false'
+   *  "ipList": string[]
+   *  "updateTime": number
+   *  "apiKey": string
+   * }>} Response object
+   */
+  setAPIKeyIPRestriction: payload =>  privCall('/sapi/v1/account/apiRestrictions/ipRestriction', payload, 'POST'),
+  /**
+   * Add IP List for an API Key.
+   * You need to make sure you have used this endpoint `POST /sapi/v1/account/apiRestrictions/ipRestriction` enabled IP restriction,
+   * then you can add IP list by `POST /sapi/v1/account/apiRestrictions/ipRestriction/ipList`.
+   * - `ipAddress` can be added in batches, separated by commas.
+   * @weight 3000
+   * @http POST
+   * @see https://binance-docs.github.io/apidocs/spot/en/#add-ip-list-for-an-api-key-user_data
+   * @requires APIKEY
+   * @requires APISECRET
+   * @param {{
+   *  accountApiKey: string
+   *  ipAddress: string
+   *  recvWindow?: number
+   * }} payload
+   * @returns { Promise<{
+   *  "ip": string
+   *  "updateTime": number
+   *  "apiKey": string
+   * }>} Response object
+   */
+  addIPListForAPIKey: payload =>  privCall('/sapi/v1/account/apiRestrictions/ipRestriction/ipList', payload, 'POST'),
+  /**
+   * Get IP Restriction for an API Key.
+   * @weight 3000
+   * @http GET
+   * @see https://binance-docs.github.io/apidocs/spot/en/#get-ip-restriction-for-an-api-key-user_data
+   * @requires APIKEY
+   * @requires APISECRET
+   * @param {{
+   *  accountApiKey: string
+   *  recvWindow?: number
+   * }} payload
+   * @returns { Promise<{
+   *  "ipRestrict": 'true' | 'false'
+   *  "ipList": string[]
+   *  "updateTime": number
+   *  "apiKey": string
+   * }>} Response object
+   */
+  getIPRestrictionForAPIKey: payload =>  privCall('/sapi/v1/account/apiRestrictions/ipRestriction', payload),
+  /**
+   * Delete IP List for an API Key.
+   * @weight 3000
+   * @http DELETE
+   * @see https://binance-docs.github.io/apidocs/spot/en/#get-ip-restriction-for-an-api-key-user_data
+   * @requires APIKEY
+   * @requires APISECRET
+   * @param {{
+   *  accountApiKey: string
+   *  ipAddress: string
+   *  recvWindow?: number
+   * }} payload
+   * @returns { Promise<{
+   *  "ipRestrict": 'true' | 'false'
+   *  "ipList": string[]
+   *  "updateTime": number
+   *  "apiKey": string
+   * }>} Response object
+   */
+  deleteIPListForAPIKey: payload =>  privCall('/sapi/v1/account/apiRestrictions/ipRestriction/ipList', payload, 'DELETE'),
 })
 
 /**
@@ -598,7 +680,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  page?: number
    *  limit?: number
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<[{
    *  "email": string
    *  "isFreeze": boolean
@@ -623,7 +705,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  page?: number
    *  limit?: number
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<[{
    *  "from": string
    *  "to": string
@@ -644,7 +726,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    * @requires APISECRET
    * @param {{
    *  email: string
-   *  futuresType: number
+   *  futuresType: 1 | 2
    *  startTime?: number
    *  endTime?: number
    *  page?: number
@@ -653,7 +735,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    * }} payload
    * @returns { Promise<{
    *  "success": boolean
-   *  "futuresType": number
+   *  "futuresType": 1 | 2
    *  "transfers": [{
    *    "from": string
    *    "to": string
@@ -730,7 +812,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  page?: number
    *  size?: number
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<{
    *  "totalCount": number
    *  "masterAccountTotalAsset": string
@@ -808,9 +890,9 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    * @requires APIKEY
    * @requires APISECRET
    * @param {{
-   *  email: string
+   *  email?: string
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<[{
    *  "email": string
    *  "isSubUserEnabled": boolean
@@ -821,9 +903,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  "mobile": number
    * }]>} Array containing sub-account statuses
    */
-  status: payload =>
-    checkParams('authenticated.spot.subAccount.status', payload, ['email']) &&
-    privCall('/sapi/v1/sub-account/status', payload),
+  status: payload => privCall('/sapi/v1/sub-account/status', payload),
   /**
    * Enable margin for sub-account (For Master Account).
    * @weight 1
@@ -885,7 +965,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    * @see https://binance-docs.github.io/apidocs/spot/en/#get-summary-of-sub-account-39-s-margin-account-for-master-account
    * @requires APIKEY
    * @requires APISECRET
-   * @param {{ recvWindow?: number }} payload
+   * @param {{ recvWindow?: number }=} payload
    * @returns { Promise<{
    *  "totalAssetOfBtc": string
    *  "totalLiabilityOfBtc": string
@@ -968,7 +1048,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    * @see https://binance-docs.github.io/apidocs/spot/en/#get-summary-of-sub-account-39-s-futures-account-for-master-account
    * @requires APIKEY
    * @requires APISECRET
-   * @param {{ recvWindow?: number }} payload
+   * @param {{ recvWindow?: number }=} payload
    * @returns { Promise<{
    *  "totalInitialMargin": string
    *  "totalMaintenanceMargin": string
@@ -1122,7 +1202,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  endTime?: number
    *  limit?: number
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<[{
    *  "counterParty": string
    *  "email": string
@@ -1184,7 +1264,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *  page?: number
    *  limit?: number
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<[{
    *  "tranId": number
    *  "fromEmail": string
@@ -1243,7 +1323,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *    "totalWalletBalance": string
    *    "updateTime": number
    *  }
-   * } | {
+   * }> | Promise<{
    *  "deliveryAccountResp": {
    *    "email": string
    *    "assets": [{
@@ -1307,12 +1387,12 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *      "asset": string
    *    }]
    *  }
-   * } | {
+   * }> | Promise<{
    *  "deliveryAccountSummaryResp": {
-   *    "totalMarginBalanceOfBTC":
-   *    "totalUnrealizedProfitOfBTC":
-   *    "totalWalletBalanceOfBTC":
-   *    "asset":
+   *    "totalMarginBalanceOfBTC": string
+   *    "totalUnrealizedProfitOfBTC": string
+   *    "totalWalletBalanceOfBTC": string
+   *    "asset": string
    *    "subAccountList": [{
    *      "email": string
    *      "totalMarginBalance": string
@@ -1353,7 +1433,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *    "symbol": string
    *    "unrealizedProfit": string
    *  }]
-   * } | {
+   * }> | Promise<{
    *  "deliveryPositionRiskVos": [{
    *    "entryPrice": string
    *    "markPrice": string
@@ -1367,7 +1447,7 @@ export const authenticatedSpotSubAccount = (privCall) => ({
    *    "symbol": string
    *    "unrealizedProfit": string
    *  }]
-   * }} Array containing future's position risks V2
+   * }>} Array containing future's position risks V2
    */
   getFuturesPositionRiskV2: payload =>
     checkParams('authenticated.spot.subAccount.getFuturesPositionRiskV2', payload, [ 'email', 'futuresType' ]) &&
@@ -1465,7 +1545,7 @@ export const authenticatedSpotMarketData = (kCall) => ({
    * Get older market trades.
    * @weight 5
    * @http GET
-   * @see https://binance-docs.github.io/apidocs/futures/en/#old-trades-lookup-market_data
+   * @see https://binance-docs.github.io/apidocs/spot/en/#old-trade-lookup-market_data
    * @requires APIKEY
    * @param {{
    *  symbol: string
@@ -1555,7 +1635,7 @@ export const authenticatedSpotTradeOCO = (privCall) => ({
    *    "type": 'LIMIT' | 'MARKET' | 'STOP_LOSS' | 'STOP_LOSS_LIMIT'
    *    | 'TAKE_PROFIT' | 'TAKE_PROFIT_LIMIT' | 'LIMIT_MAKER'
    *    "side": 'BUY' | 'SELL'
-   *    "stopPrice?": string
+   *    "stopPrice"?: string
    *  }]
    * }>} Object containing OCO order object
    */
@@ -1606,7 +1686,7 @@ export const authenticatedSpotTradeOCO = (privCall) => ({
    *    "type": 'LIMIT' | 'MARKET' | 'STOP_LOSS' | 'STOP_LOSS_LIMIT'
    *    | 'TAKE_PROFIT' | 'TAKE_PROFIT_LIMIT' | 'LIMIT_MAKER'
    *    "side": 'BUY' | 'SELL'
-   *    "stopPrice?": string
+   *    "stopPrice"?: string
    *  }]
    * }>} Object containing cancelled OCO order object
    */
@@ -1654,7 +1734,7 @@ export const authenticatedSpotTradeOCO = (privCall) => ({
    *  endTime?: number
    *  limit?: number
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<[{
    *  "orderListId": number
    *  "contingencyType": string
@@ -1678,7 +1758,7 @@ export const authenticatedSpotTradeOCO = (privCall) => ({
    * @see https://binance-docs.github.io/apidocs/spot/en/#query-open-oco-user_data
    * @requires APIKEY
    * @requires APISECRET
-   * @param {{ recvWindow?: number }} payload
+   * @param {{ recvWindow: number }=} payload
    * @returns { Promise<[{
    *  "orderListId": number
    *  "contingencyType": string
@@ -1788,7 +1868,7 @@ export const authenticatedSpotTrade = (privCall) => ({
    *  "orderListId": number
    *  "clientOrderId": string
    *  "transactTime": number
-   * } | {
+   * }> | Promise<{
    *  "symbol": string
    *  "orderId": number
    *  "orderListId": number
@@ -1803,7 +1883,7 @@ export const authenticatedSpotTrade = (privCall) => ({
    *  "timeInForce": 'FOK' | 'GTC' | 'IOC'
    *  "type": 'LIMIT' | 'MARKET'
    *  "side": 'BUY' | 'SELL'
-   * } | {
+   * }> | Promise<{
    *  "symbol": string
    *  "orderId": number
    *  "orderListId": number
@@ -1951,7 +2031,7 @@ export const authenticatedSpotTrade = (privCall) => ({
    * @param {{
    *  symbol?: string
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<[{
    *  "symbol": string
    *  "orderId": number
@@ -2028,7 +2108,7 @@ export const authenticatedSpotTrade = (privCall) => ({
    * @see https://binance-docs.github.io/apidocs/spot/en/#account-information-user_data
    * @requires APIKEY
    * @requires APISECRET
-   * @param {{ recvWindow?: number }} payload
+   * @param {{ recvWindow: number }=} payload
    * @returns { Promise<{
    *  "makerCommission": number
    *  "takerCommission": number
@@ -2158,7 +2238,7 @@ export const authenticatedSpotSavings = (privCall) => ({
      *  current?: number
      *  size?: number
      *  recvWindow?: number
-     * }} payload
+     * }=} payload
      * @returns { Promise<[{
      *  "asset": string
      *  "avgAnnualInterestRate": string
@@ -2385,7 +2465,7 @@ export const authenticatedSpotSavings = (privCall) => ({
    * @see https://binance-docs.github.io/apidocs/spot/en/#lending-account-user_data
    * @requires APIKEY
    * @requires APISECRET
-   * @param {{ recvWindow?: number }} payload
+   * @param {{ recvWindow: number }=} payload
    * @returns { Promise<{
    *  "positionAmountVos": [{
    *    "amount": string
@@ -2428,7 +2508,7 @@ export const authenticatedSpotSavings = (privCall) => ({
    *  "productName": string
    *  "purchaseId": string
    *  "status": string
-   * }] | [{
+   * }]> | Promise<[{
    *  "amount": string
    *  "asset": string
    *  "createTime": number
@@ -2468,7 +2548,7 @@ export const authenticatedSpotSavings = (privCall) => ({
    *  "projectId": string
    *  "projectName": string
    *  "status": string
-   *  "type": string
+   *  "type": 'FAST' | 'NORMAL'
    * }]> | Promise<[{
    *  "amount": string
    *  "asset": string
@@ -2552,7 +2632,7 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
    * @http GET
    * @see https://binance-docs.github.io/apidocs/spot/en/#acquiring-algorithm-market_data
    * @requires APIKEY
-   * @param {{ recvWindow?: number }} payload
+   * @param {{ recvWindow: number }=} payload
    * @returns { Promise<{
    *  "code": number
    *  "msg": string
@@ -2571,7 +2651,7 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
    * @http GET
    * @see https://binance-docs.github.io/apidocs/spot/en/#acquiring-coinname-market_data
    * @requires APIKEY
-   * @param {{ recvWindow?: number }} payload
+   * @param {{ recvWindow: number }=} payload
    * @returns { Promise<{
    *  "code": number
    *  "msg": string
@@ -2739,7 +2819,7 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
      *  pageIndex?: number
      *  pageSize?: number
      *  recvWindow?: number
-     * }} payload
+     * }=} payload
      * @returns { Promise<{
      *  "code": number
      *  "msg": string
@@ -2777,7 +2857,7 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
      * @returns { Promise<{
      *  "code": number
      *  "msg": string
-     *  "data": [{
+     *  "data": {
      *    "profitTransferDetails": [{
      *      "poolUsername": string
      *      "toPoolUsername": string
@@ -2789,7 +2869,7 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
      *    }]
      *    "totalNum": number
      *    "pageSize": number
-     *  }]
+     *  }
      * }>} Response object containing hashrate resale details
      */
     detail: payload =>
@@ -2809,8 +2889,6 @@ export const authenticatedSpotMining = (privCall, kCall) => ({
      *  startDate: number
      *  toPoolUser: string
      *  hashRate: number
-     *  pageIndex?: number
-     *  pageSize?: number
      *  recvWindow?: number
      * }} payload
      * @returns { Promise<{
@@ -3001,7 +3079,7 @@ export const authenticatedSpotFutures = (privCall) => ({
    *  endTime?: number
    *  limit?: number
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<{
    *  "rows": [{
    *    "confirmedTime": number
@@ -3055,7 +3133,7 @@ export const authenticatedSpotFutures = (privCall) => ({
    *  endTime?: number
    *  limit?: number
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<{
    *  "rows": [{
    *    "coin": string
@@ -3081,7 +3159,7 @@ export const authenticatedSpotFutures = (privCall) => ({
    * @see https://binance-docs.github.io/apidocs/spot/en/#cross-collateral-wallet-user_data
    * @requires APIKEY
    * @requires APISECRET
-   * @param {{ recvWindow?: number }} payload
+   * @param {{ recvWindow: number }=} payload
    * @returns { Promise<{
    *  "totalCrossCollateral": string
    *  "totalBorrowed": string
@@ -3107,7 +3185,7 @@ export const authenticatedSpotFutures = (privCall) => ({
    * @see https://binance-docs.github.io/apidocs/spot/en/#cross-collateral-wallet-v2-user_data
    * @requires APIKEY
    * @requires APISECRET
-   * @param {{ recvWindow?: number }} payload
+   * @param {{ recvWindow: number }=} payload
    * @returns { Promise<{
    *  "totalCrossCollateral": string
    *  "totalBorrowed": string
@@ -3139,7 +3217,7 @@ export const authenticatedSpotFutures = (privCall) => ({
    * @param {{
    *  collateralCoin?: string
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<[{
    *  "collateralCoin": string
    *  "rate": string
@@ -3165,7 +3243,7 @@ export const authenticatedSpotFutures = (privCall) => ({
    *  loanCoin?: string
    *  collateralCoin?: string
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<[{
    *  "loanCoin": string
    *  "collateralCoin": string
@@ -3320,7 +3398,7 @@ export const authenticatedSpotFutures = (privCall) => ({
    *  endTime?: number
    *  limit?: number
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<{
    *  "rows": [{
    *    "amount": string
@@ -3350,7 +3428,7 @@ export const authenticatedSpotFutures = (privCall) => ({
    *  endTime?: number
    *  limit?: number
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<{
    *  "rows": [{
    *    "collateralAmountForLiquidation": string
@@ -3464,7 +3542,7 @@ export const authenticatedSpotFutures = (privCall) => ({
    *  current?: number
    *  limit?: number
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<{
    *  "rows": [{
    *    "collateralCoin": string
@@ -3495,7 +3573,7 @@ export const authenticatedSpotBLVT = (privCall, kCall) => ({
    * @http GET
    * @see https://binance-docs.github.io/apidocs/spot/en/#get-blvt-info-market_data
    * @requires APIKEY
-   * @param {{ tokenName?: string }} payload
+   * @param {{ tokenName: string }=} payload
    * @returns { Promise<[{
    *  "tokenName": string
    *  "description": string
@@ -3557,7 +3635,7 @@ export const authenticatedSpotBLVT = (privCall, kCall) => ({
    *  endTime?: number
    *  limit?: number
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<[{
    *  "id": number
    *  "tokenName": string
@@ -3607,7 +3685,7 @@ export const authenticatedSpotBLVT = (privCall, kCall) => ({
    *  endTime?: number
    *  limit?: number
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<[{
    *  "id": number
    *  "tokenName": string
@@ -3629,7 +3707,7 @@ export const authenticatedSpotBLVT = (privCall, kCall) => ({
    * @param {{
    *  tokenName?: string
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<[{
    *  "tokenName": string
    *  "userDailyTotalPurchaseLimit": string
@@ -3670,7 +3748,7 @@ export const authenticatedSpotBSwap = (privCall, kCall) => ({
    * @param {{
    *  poolId?: number
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<[{
    *  "poolId": number
    *  "poolName": string
@@ -3741,7 +3819,7 @@ export const authenticatedSpotBSwap = (privCall, kCall) => ({
    *  endTime?: number
    *  limit?: number
    *  recvWindow?: number
-   * }} payload
+   * }=} payload
    * @returns { Promise<[{
    *  "operationId": number
    *  "poolId": number
@@ -3818,11 +3896,11 @@ export const authenticatedSpotBSwap = (privCall, kCall) => ({
    *  baseAsset?: string
    *  limit?: number
    *  recvWindow?: number
-   * }} payload 
+   * }=} payload 
    * @returns { Promise<[{
    *  "swapID": number
    *  "swapTime": number
-   *  "status": number
+   *  "status": 0 | 1 | 2
    *  "quoteAsset": string
    *  "baseAsset": string
    *  "quoteQty": number
@@ -3842,7 +3920,7 @@ export const authenticatedSpotBSwap = (privCall, kCall) => ({
    * @param {{
    *  poolId?: number
    *  recvWindow?: number
-   * }} payload 
+   * }=} payload 
    * @returns { Promise<[{
    *  "poolId": number
    *  "poolName": string
@@ -3853,13 +3931,7 @@ export const authenticatedSpotBSwap = (privCall, kCall) => ({
    *    "slippageTolerance": number
    *  }
    *  "assetConfigure": {
-   *    "BUSD": {
-   *      "minAdd": number
-   *      "maxAdd": number
-   *      "minSwap": number
-   *      "maxSwap": number
-   *    }
-   *    "USDT": {
+   *    [ key: string ]: {
    *      "minAdd": number
    *      "maxAdd": number
    *      "minSwap": number
@@ -4067,6 +4139,91 @@ export const authenticatedSpotC2C = (privCall) => ({
 })
 
 /**
+ * 💳 Spot Crypto Loans Endpoints
+ * 
+ * @see https://binance-docs.github.io/apidocs/spot/en/#crypto-loans-endpoints
+ * @param { (path: string, data?: any, method?: 'GET' | 'POST' | 'PUT' | 'DELETE', noData?: boolean, noExtra?: boolean) => Promise<any> } privCall
+ */
+export const authenticatedSpotCryptoLoans = (privCall) => ({
+  /**
+   * Get Crypto Loans Income History.
+   * - If `startTime` and `endTime` are not sent, the recent 7-day data will be returned.
+   * - The max interval between `startTime` and `endTime` is 30 days.
+   * @weight 6000
+   * @http GET
+   * @see https://binance-docs.github.io/apidocs/spot/en/#get-crypto-loans-income-history-user_data
+   * @requires APIKEY
+   * @requires APISECRET
+   * @param {{
+   *  asset: string
+   *  type?: 'borrowIn' | 'collateralSpent' | 'repayAmount' | 'collateralReturn'
+   *  | 'addCollateral' | 'removeCollateral' | 'collateralReturnAfterLiquidation'
+   *  startTime?: number
+   *  endTime?: number
+   *  limit?: number
+   *  recvWindow?: number
+   * }} payload
+   * @returns { Promise<[{
+   *  "asset": string
+   *  "type": 'borrowIn' | 'collateralSpent' | 'repayAmount' | 'collateralReturn'
+   *  | 'addCollateral' | 'removeCollateral' | 'collateralReturnAfterLiquidation'
+   *  "amount": string
+   *  "timestamp": number
+   *  "tranId": string
+   * }]>} Object containing crypto loans income history
+   */
+  getCryptoLoansIncomeHistory: payload =>
+    checkParams('authenticated.spot.cryptoLoans.getCryptoLoansIncomeHistory', payload, ['asset']) &&
+    privCall('/sapi/v1/loan/income', payload),
+})
+
+/**
+ * 💳 Spot Pay Endpoints
+ * 
+ * @see https://binance-docs.github.io/apidocs/spot/en/#pay-endpoints
+ * @param { (path: string, data?: any, method?: 'GET' | 'POST' | 'PUT' | 'DELETE', noData?: boolean, noExtra?: boolean) => Promise<any> } privCall
+ */
+export const authenticatedSpotPay = (privCall) => ({
+  /**
+   * Get Pay Trade History.
+   * - If `startTimestamp` and `endTimestamp` are not sent, the recent 90-day data will be returned.
+   * - The max interval between `startTimestamp` and `endTimestamp` is 90 days.
+   * - Support for querying orders within the last 18 months.
+   * @weight 3000
+   * @http GET
+   * @see https://binance-docs.github.io/apidocs/spot/en/#get-pay-trade-history-user_data
+   * @requires APIKEY
+   * @requires APISECRET
+   * @param {{
+   *  startTimestamp?: number
+   *  endTimestamp?: number
+   *  limit?: number
+   *  recvWindow?: number
+   * }=} payload
+   * @returns { Promise<{
+   *  "code": string
+   *  "message": string
+   *  "data": {
+   *    "orderType": 'PAY' | 'PAY_REFUND' | 'C2C' | 'CRYPTO_BOX' | 'CRYPTO_BOX_RF'
+   *    | 'C2C_HOLDING' | 'C2C_HOLDING_RF' | 'PAYOUT'
+   *    "transactionId": string
+   *    "transactionTime": number
+   *    "amount": string
+   *    "currency": string
+   *    "fundsDetail": {
+   *      "currency": string
+   *      "amount": string
+   *    }[]
+   *  }[]
+   *  "success": string
+   * }>} Object containing pay trade history
+   */
+  getPayTradeHistory: payload =>
+    checkParams('authenticated.spot.pay.getPayTradeHistory', payload) &&
+    privCall('/sapi/v1/pay/transactions', payload),
+})
+
+/**
  * 🔐 Authenticated Spot REST Endpoints
  * 
  * @see https://binance-docs.github.io/apidocs/spot/en/
@@ -4085,7 +4242,9 @@ const authenticatedSpot = (privCall, kCall) => ({
   BLVT: authenticatedSpotBLVT(privCall, kCall),
   BSwap: authenticatedSpotBSwap(privCall, kCall),
   fiat: authenticatedSpotFiat(privCall),
-  C2C: authenticatedSpotC2C(privCall)
+  C2C: authenticatedSpotC2C(privCall),
+  cryptoLoans: authenticatedSpotCryptoLoans(privCall),
+  pay: authenticatedSpotPay(privCall)
 })
 
 export default authenticatedSpot

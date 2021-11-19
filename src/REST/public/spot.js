@@ -21,7 +21,7 @@ export const publicSpotWallet = (pubCall) => ({
    * @see https://binance-docs.github.io/apidocs/spot/en/#system-status-system
    * @returns { Promise<boolean> } System status
    */
-  systemStatus: () => pubCall('/sapi/v1/system/status').then(() => true).catch(() => false)
+  systemStatus: () => pubCall('/sapi/v1/system/status').then(() => true)
 })
 
 /**
@@ -56,20 +56,31 @@ export const publicSpotMarketData = (pubCall) => ({
    * @param {{
    *  symbol?: string
    *  symbols?: string[]
-   * }} payload
+   * }=} payload
    * @returns {Promise<{
    *  "timezone": string
    *  "serverTime": number
-   *  "rateLimits": any[]
-   *  "exchangeFilters": any[]
+   *  "rateLimits": [{
+   *    "interval": string
+   *    "intervalNum": number
+   *    "limit": number
+   *    "rateLimitType": string
+   *  }]
+   *  "exchangeFilters": [{
+   *    "filterType": 'EXCHANGE_MAX_NUM_ORDERS' | 'EXCHANGE_MAX_ALGO_ORDERS'
+   *    "limit": number
+   *  }]
    *  "symbols": [{
    *    "symbol": string
    *    "status": string
    *    "baseAsset": string
-   *    "baseAssetPrecision": string
+   *    "baseAssetPrecision": number
+   *    "baseCommissionPrecision": number
    *    "quoteAsset": string
-   *    "quotePrecision": string
-   *    "quoteAssetPrecision": string
+   *    "quotePrecision": number
+   *    "quoteAssetPrecision": number
+   *    "quoteCommissionPrecision": number
+   *    "quoteOrderQtyMarketAllowed": boolean
    *    "orderTypes": [
    *      'LIMIT'
    *      'LIMIT_MAKER'
@@ -216,7 +227,7 @@ export const publicSpotMarketData = (pubCall) => ({
    * @weight 1 for a single symbol, 40 when the symbol parameter is omitted
    * @http GET
    * @see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics
-   * @param {{ symbol?: string }} payload
+   * @param {{ symbol: string }=} payload
    * @returns {Promise<{
    *  "symbol": string
    *  "priceChange": string
@@ -264,7 +275,7 @@ export const publicSpotMarketData = (pubCall) => ({
    * @weight 1 for a single symbol, 2 when the symbol parameter is omitted
    * @http GET
    * @see https://binance-docs.github.io/apidocs/spot/en/#symbol-price-ticker
-   * @param {{ symbol?: string }} payload
+   * @param {{ symbol: string }=} payload
    * @returns {Promise<{
    *  [ symbol: string ]: string
    * }>} Object containing latest price(s) for symbol(s)
@@ -279,7 +290,7 @@ export const publicSpotMarketData = (pubCall) => ({
    * @weight 1 for a single symbol, 2 when the symbol parameter is omitted
    * @http GET
    * @see https://binance-docs.github.io/apidocs/spot/en/#symbol-order-book-ticker
-   * @param {{ symbol?: string }} payload
+   * @param {{ symbol: string }=} payload
    * @returns {Promise<{
    *  [ symbol: string ]: {
    *    "symbol": string
